@@ -14,6 +14,10 @@ Useful for authors that:
 
 First open the template files and save them in DOCX format, since Pandoc won't accept DOC.
 
+## Installation
+
+Copy `bin/markua2aw` to `/usr/local/bin` or wherever it seems right.
+
 ## Usage
 
 If your book is in a file `anna_karenina.md` and the template in `ptg_awph02_main.docx`, you would convert it like this:
