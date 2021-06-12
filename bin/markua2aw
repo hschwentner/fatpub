@@ -22,6 +22,82 @@ use warnings;
 use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
+
+# Define Styles to be used
+our $BKRM_GLOS_DEF = 'BKRM_GLOS_DEF';
+our $BKRM_GLOS_KT = 'BKRM_GLOS_KT';
+our $BKRM_GLOS_KT_SCAP = 'BKRM_GLOS_KT_SCAP';
+our $BKRM_BIB1 = 'BKRM_BIB1';
+our $BKRM_BIB2 = 'BKRM_BIB2';
+our $DLG_FIRST = 'DLG_FIRST';
+our $DLG_MID = 'DLG_MID';
+our $DLG_LAST = 'DLG_LAST';
+our $DLG_SPKR = 'DLG_SPKR';
+our $SF1_TTL = 'SF1_TTL';
+our $SF1_FIRST = 'SF1_FIRST';
+our $SF2_TTL = 'SF2_TTL';
+our $SF2_FIRST = 'SF2_FIRST';
+our $HEADFIRST = 'HEADFIRST';
+our $CHAP_BM = 'CHAP_BM';
+our $CF_EPG_FIRST = 'CF_EPG_FIRST';
+our $CF_EPG_ATTR_AU_NA = 'CF_EPG_ATTR_AU_NA';
+our $EPG = 'EPG';
+our $EPG_ATTR_AU_NA = 'EPG_ATTR_AU_NA';
+our $EXT_ONLY = 'EXT_ONLY';
+our $FN = 'FN';                 # Todo...
+our $PART_NUM = 'PART_NUM';
+our $PART_TTL = 'PART_TTL';
+our $CHAP_NUM = 'CHAP_NUM';
+our $CHAP_TTL = 'CHAP_TTL';
+our $H1 = 'H1';
+our $H2 = 'H2';
+our $H3 = 'H3';
+our $BL_FIRST = 'BL_FIRST';
+our $BL_MID = 'BL_MID';
+our $BL_LAST = 'BL_LAST';
+our $BL_BL_FIRST = 'BL_BL_FIRST';
+our $BL_BL_MID = 'BL_BL_MID';
+our $BL_BL_LAST = 'BL_BL_LAST';
+our $BL_BL_DING = 'BL_BL_DING';
+our $BL_BL_BL_FIRST = 'BL_BL_BL_FIRST';
+our $BL_BL_BL_MID = 'BL_BL_BL_MID';
+our $BL_BL_BL_LAST = 'BL_BL_BL_LAST';
+our $BL_BL_BL_DING = 'BL_BL_BL_DING';
+our $NL_FIRST = 'NL_FIRST';
+our $NL_MID = 'NL_MID';
+our $NL_LAST = 'NL_LAST';
+our $NL_NUM = 'NL_NUM';
+our $ARTLIST = 'artlist';
+our $FIG_TTL = 'FIG_TTL';
+our $FIG_NUM = 'FIG_NUM';
+our $EQ_ONLY = 'EQ_ONLY';
+
+our $CIT = 'CIT';
+our $CDT_ONLY = 'CDT_ONLY';
+our $CDT_FIRST = 'CDT_FIRST';
+our $CDT_MID = 'CDT_MID';
+our $CDT_LAST = 'CDT_LAST';
+our $DT_FIRST = 'DT_FIRST';
+our $DT_MID = 'DT_MID';
+our $DT_LAST = 'DT_LAST';
+our $DT_NUM = 'DT_NUM';
+our $DT_BOLD = 'DT_BOLD';
+our $DT_ITAL = 'DT_ITAL';
+
+our $ITAL = 'ITAL';
+our $BOLD = 'BOLD';
+our $BOLD_ITAL = 'BOLD_ITAL';
+our $SCAP = 'SCAP';
+our $SCAP_ITAL = 'SCAP_ITAL';
+our $SCAP_BOLD = 'SCAP_BOLD';
+our $SCAP_BOLD_ITAL = 'SCAP_BOLD_ITAL';
+
+# TODO: Asides and boxes
+
+# TODO: replacement of styles for Part, Acknowledgements, About the Authors, etc.
+#our $ = '';
+
+
 my $text;
 {
 	local $/;               # Slurp the whole file
@@ -81,10 +157,10 @@ sub translateBackmatter {
     my $text = shift;
 
     # Glossary entries
-    $text =~ s/^\*{2}\[(.*?)\]\{dst-sf\}—\*{2} (.*)$/::: {custom-style="BKRM_GLOS_DEF"}\n[$1]{custom-style="BKRM_GLOS_KT_SCAP"}[—]{custom-style="BKRM_GLOS_KT"}$2\n:::/gm;
-    $text =~ s/^\*{2}(.*?—)\*{2} (.*)$/::: {custom-style="BKRM_GLOS_DEF"}\n[$1]{custom-style="BKRM_GLOS_KT"}$2\n:::/gm;
+    $text =~ s/^\*{2}\[(.*?)\]\{dst-sf\}—\*{2} (.*)$/::: {custom-style="$BKRM_GLOS_DEF"}\n[$1]{custom-style="$BKRM_GLOS_KT_SCAP"}[—]{custom-style="$BKRM_GLOS_KT"}$2\n:::/gm;
+    $text =~ s/^\*{2}(.*?—)\*{2} (.*)$/::: {custom-style="$BKRM_GLOS_DEF"}\n[$1]{custom-style="$BKRM_GLOS_KT"}$2\n:::/gm;
     # Bibliography entries
-    $text =~ s/\n\*{2}(\[.*?\])\*{2}(?:\s{2})?\n(.*?)\n/\n::: {custom-style="BKRM_BIB1"}\n$1\n:::\n::: {custom-style="BKRM_BIB2"}\n$2\n:::\n/gm;
+    $text =~ s/\n\*{2}(\[.*?\])\*{2}(?:\s{2})?\n(.*?)\n/\n::: {custom-style="$BKRM_BIB1"}\n$1\n:::\n::: {custom-style="$BKRM_BIB2"}\n$2\n:::\n/gm;
 
     return $text;
 }
@@ -94,22 +170,22 @@ sub translateBodyText {
     my $text = shift;
 
     # Dialogues
-    $text =~ s/(\n(?!\*{4}).*\n\n+)\*{4}(.*?:)\*{4}(.*?)\n/$1::: {custom-style="DLG_FIRST"}\n[$2]{custom-style="DLG_SPKR"} $3\n:::\n/g;
-    $text =~ s/\n\*{4}(.*?:)\*{4}(.*?)(\n\n+(?!\*{4}).*\n)/\n::: {custom-style="DLG_LAST"}\n[$1]{custom-style="DLG_SPKR"} $2\n:::$3/g;
-    $text =~ s/^\*{4}(.*?:)\*{4}(.*)$/::: {custom-style="DLG_MID"}\n[$1]{custom-style="DLG_SPKR"} $2\n:::/gm;
+    $text =~ s/(\n(?!\*{4}).*\n\n+)\*{4}(.*?:)\*{4}(.*?)\n/$1::: {custom-style="$DLG_FIRST"}\n[$2]{custom-style="$DLG_SPKR"} $3\n:::\n/g;
+    $text =~ s/\n\*{4}(.*?:)\*{4}(.*?)(\n\n+(?!\*{4}).*\n)/\n::: {custom-style="$DLG_LAST"}\n[$1]{custom-style="$DLG_SPKR"} $2\n:::$3/g;
+    $text =~ s/^\*{4}(.*?:)\*{4}(.*)$/::: {custom-style="$DLG_MID"}\n[$1]{custom-style="$DLG_SPKR"} $2\n:::/gm;
     # Tips, Notes
-    $text =~ s/^I> (.*)$/::: {custom-style="SF1_TTL"}\nNote\n:::\n::: {custom-style="SF1_FIRST"}\n$1\n:::/gm;
-    $text =~ s/^T> (.*)$/::: {custom-style="SF2_TTL"}\nTip\n:::\n::: {custom-style="SF2_FIRST"}\n$1\n:::/gm;
+    $text =~ s/^I> (.*)$/::: {custom-style="$SF1_TTL"}\nNote\n:::\n::: {custom-style="$SF1_FIRST"}\n$1\n:::/gm;
+    $text =~ s/^T> (.*)$/::: {custom-style="$SF2_TTL"}\nTip\n:::\n::: {custom-style="$SF2_FIRST"}\n$1\n:::/gm;
     # Paragraphs
-    $text =~ s/((?:^|\n)#.*(?:\n+>.*)?(?:\n+\!.*)?)\n\n+([A-Za-z\[\*].*)\n+/$1\n\n::: {custom-style="HEADFIRST"}\n$2\n:::\n\n/gm; # First paragraph after heading with optional epigraph and optional opening picture
-    $text =~ s/((?:^|\n)#.*(?:\n+\!.*)?)\n\n+([A-Za-z\[\*].*)\n+/$1\n\n::: {custom-style="HEADFIRST"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
-    $text =~ s/\n\n([A-Za-z\[\*].*)\n+/\n\n::: {custom-style="CHAP_BM"}\n$1\n:::\n\n/gm;  # einmal für ungerade Absatznummer
-    $text =~ s/\n\n([A-Za-z\[\*].*)\n+/\n\n::: {custom-style="CHAP_BM"}\n$1\n:::\n\n/gm;  # Doppelt für Gerade Absatznummer
+    $text =~ s/((?:^|\n)#.*(?:\n+>.*)?(?:\n+\!.*)?)\n\n+([A-Za-z\[\*].*)\n+/$1\n\n::: {custom-style="$HEADFIRST"}\n$2\n:::\n\n/gm; # First paragraph after heading with optional epigraph and optional opening picture
+    $text =~ s/((?:^|\n)#.*(?:\n+\!.*)?)\n\n+([A-Za-z\[\*].*)\n+/$1\n\n::: {custom-style="$HEADFIRST"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
+    $text =~ s/\n\n([A-Za-z\[\*].*)\n+/\n\n::: {custom-style="$CHAP_BM"}\n$1\n:::\n\n/gm;  # einmal für ungerade Absatznummer
+    $text =~ s/\n\n([A-Za-z\[\*].*)\n+/\n\n::: {custom-style="$CHAP_BM"}\n$1\n:::\n\n/gm;  # Doppelt für Gerade Absatznummer
     # Epigraphs/Block Quotations
-    $text =~ s/(^# .*\n+)> (.*)(—.*)$/$1::: {custom-style="CF_EPG_FIRST"}\n$2\n:::\n::: {custom-style="CF_EPG_ATTR_AU_NA"}\n$3\n:::\n/gm; # Opening epigraph
-    $text =~ s/(^##+ .*\n+)> (.*)(—.*)$/$1::: {custom-style="EPG"}\n$2\n:::\n::: {custom-style="EPG_ATTR_AU_NA"}\n$3\n:::/gm;  # Epigraph with author
-    $text =~ s/(^##+ .*\n+)> (.*)$/$1::: {custom-style="EPG"}\n$2\n:::/gm;  # Epigraph
-    $text =~ s/^> (.*)$/::: {custom-style="EXT_ONLY"}\n$1\n:::/gm;  # Extract
+    $text =~ s/(^# .*\n+)> (.*)(—.*)$/$1::: {custom-style="$CF_EPG_FIRST"}\n$2\n:::\n::: {custom-style="$CF_EPG_ATTR_AU_NA"}\n$3\n:::\n/gm; # Opening epigraph
+    $text =~ s/(^##+ .*\n+)> (.*)(—.*)$/$1::: {custom-style="$EPG"}\n$2\n:::\n::: {custom-style="$EPG_ATTR_AU_NA"}\n$3\n:::/gm;  # Epigraph with author
+    $text =~ s/(^##+ .*\n+)> (.*)$/$1::: {custom-style="$EPG"}\n$2\n:::/gm;  # Epigraph
+    $text =~ s/^> (.*)$/::: {custom-style="$EXT_ONLY"}\n$1\n:::/gm;  # Extract
 
 # TODO:
 #       [^fn]:      Footnotes   -> custom-style="FN"
@@ -121,9 +197,9 @@ sub translateBodyText {
 sub translateSubHeadings {
     my $text = shift;
 
-    $text =~ s/^## (.*)$/::: {custom-style="H1"}\n$1\n:::/gm;
-    $text =~ s/^### (.*)$/::: {custom-style="H2"}\n$1\n:::/gm;
-    $text =~ s/^#### (.*)$/::: {custom-style="H3"}\n$1\n:::/gm;
+    $text =~ s/^## (.*)$/::: {custom-style="$H1"}\n$1\n:::/gm;
+    $text =~ s/^### (.*)$/::: {custom-style="$H2"}\n$1\n:::/gm;
+    $text =~ s/^#### (.*)$/::: {custom-style="$H3"}\n$1\n:::/gm;
     
     return $text;
 }
@@ -132,21 +208,21 @@ sub translateLists {
     my $text = shift;
 
     # Bulleted, level 1
-    $text =~ s/\n\n- (.*)\n/\n\n::: {custom-style="BL_FIRST"}\n$1\n:::\n/gm;
-    $text =~ s/\n- (.*)\n\n/\n::: {custom-style="BL_LAST"}\n$1\n:::\n\n/gm;
-    $text =~ s/^- (.*)$/::: {custom-style="BL_MID"}\n$1\n:::/gm;            
+    $text =~ s/\n\n- (.*)\n/\n\n::: {custom-style="$BL_FIRST"}\n$1\n:::\n/gm;
+    $text =~ s/\n- (.*)\n\n/\n::: {custom-style="$BL_LAST"}\n$1\n:::\n\n/gm;
+    $text =~ s/^- (.*)$/::: {custom-style="$BL_MID"}\n$1\n:::/gm;            
     # Bulleted, level 2
-    $text =~ s/(\n(?!  -).*?\n+)  - (.*?)\n/$1::: {custom-style="BL_BL_FIRST"}\n\[○\]{custom-style="BL_BL_DING"}\t$2\n:::\n/gm;
-    $text =~ s/\n  - (.*?)(\n+(?!  -))/\n::: {custom-style="BL_BL_LAST"}\n\[○\]{custom-style="BL_BL_DING"}\t$1\n:::$2/gm;
-    $text =~ s/^  - (.*)$/::: {custom-style="BL_BL_MID"}\n\[○\]{custom-style="BL_BL_DING"}	$1\n:::/gm;                               
+    $text =~ s/(\n(?!  -).*?\n+)  - (.*?)\n/$1::: {custom-style="$BL_BL_FIRST"}\n\[○\]{custom-style="$BL_BL_DING"}\t$2\n:::\n/gm;
+    $text =~ s/\n  - (.*?)(\n+(?!  -))/\n::: {custom-style="$BL_BL_LAST"}\n\[○\]{custom-style="$BL_BL_DING"}\t$1\n:::$2/gm;
+    $text =~ s/^  - (.*)$/::: {custom-style="$BL_BL_MID"}\n\[○\]{custom-style="$BL_BL_DING"}	$1\n:::/gm;                               
     # Bulleted, level 3
-    $text =~ s/(\n(?!    -).*?\n+)    - (.*?)\n/$1::: {custom-style="BL_BL_BL_FIRST"}\n\[○\]{custom-style="BL_BL_DING"}\t$2\n:::\n/gm;
-    $text =~ s/\n    - (.*?)(\n+(?!    -))/\n::: {custom-style="BL_BL_BL_LAST"}\n\[○\]{custom-style="BL_BL_DING"}\t$1\n:::$2/gm;
-    $text =~ s/^    - (.*)$/::: {custom-style="BL_BL_BL_MID"}\n\[•\]{custom-style="BL_BL_BL_DING"}	$1\n:::/gm;   
+    $text =~ s/(\n(?!    -).*?\n+)    - (.*?)\n/$1::: {custom-style="$BL_BL_BL_FIRST"}\n\[•\]{custom-style="$BL_BL_BL_DING"}\t$2\n:::\n/gm;
+    $text =~ s/\n    - (.*?)(\n+(?!    -))/\n::: {custom-style="$BL_BL_BL_LAST"}\n\[•\]{custom-style="$BL_BL_BL_DING"}\t$1\n:::$2/gm;
+    $text =~ s/^    - (.*)$/::: {custom-style="$BL_BL_BL_MID"}\n\[•\]{custom-style="$BL_BL_BL_DING"}	$1\n:::/gm;   
     # Numbered                            
-    $text =~ s/(^1.) (.*)$/::: {custom-style="NL_FIRST"}\n\[$1\]{custom-style="NL_NUM"} $2\n:::/gm;
-    $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="NL_LAST"}\n\[$1\]{custom-style="NL_NUM"} $2\n:::$3/gm;      
-    $text =~ s/(^[2-9].) (.*)$/::: {custom-style="NL_MID"}\n\[$1\]{custom-style="NL_NUM"} $2\n:::/gm;      
+    $text =~ s/(^1.) (.*)$/::: {custom-style="$NL_FIRST"}\n\[$1\]{custom-style="$NL_NUM"} $2\n:::/gm;
+    $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$NL_LAST"}\n\[$1\]{custom-style="$NL_NUM"} $2\n:::$3/gm;      
+    $text =~ s/(^[2-9].) (.*)$/::: {custom-style="$NL_MID"}\n\[$1\]{custom-style="$NL_NUM"} $2\n:::/gm;      
 
     return $text;
 }
@@ -154,9 +230,9 @@ sub translateLists {
 sub translateFigures {
     my $text = shift;
 
-    $text =~ s/^\!\[Figure[ | ]([0-9IVX\.\-]*)(.*)\]\((.*)\)(.*)$/::: {custom-style="artlist"}\n![]($3)$4\n:::\n::: {custom-style="FIG_TTL"}\n[Figure $1]{custom-style="FIG_NUM"} $2\n:::/gm; # Abbildungen
-    $text =~ s/^\!\[(.+)\]((.*))$/::: {custom-style="artlist"}\n![]($2)\n:::\n::: {custom-style="FIG_TTL"}\n$1\n:::/gm; 
-    $text =~ s/^(\!\[\].*)$/::: {custom-style="artlist"}\n$1\n:::/gm; # Image without caption
+    $text =~ s/^\!\[Figure[ | ]([0-9IVX\.\-]*)(.*)\]\((.*)\)(.*)$/::: {custom-style="$ARTLIST"}\n![]($3)$4\n:::\n::: {custom-style="$FIG_TTL"}\n[Figure $1]{custom-style="$FIG_NUM"} $2\n:::/gm; # Abbildungen
+    $text =~ s/^\!\[(.+)\]((.*))$/::: {custom-style="$ARTLIST"}\n![]($2)\n:::\n::: {custom-style="$FIG_TTL"}\n$1\n:::/gm; 
+    $text =~ s/^(\!\[\].*)$/::: {custom-style="$ARTLIST"}\n$1\n:::/gm; # Image without caption
 
     return $text;
 }
@@ -174,21 +250,21 @@ sub translateSourceCode {
     $text =~ s{(^```userstory.*?^```)}{replaceWithUserStoryCodeStyles($1)}msge;
 
     # Equations
-    $text =~ s/^```\$\n(.*?)\n```$/::: {custom-style="EQ_ONLY"}\n$1\n:::/mg;
+    $text =~ s/^```\$\n(.*?)\n```$/::: {custom-style="$EQ_ONLY"}\n$1\n:::/mg;
 
     # Code one-liner
-    $text =~ s/^```.*?\n(.*?)\n```$/::: {custom-style="CDT_ONLY"}\n$1\n:::/mg;
+    $text =~ s/^```.*?\n(.*?)\n```$/::: {custom-style="$CDT_ONLY"}\n$1\n:::/mg;
 
     # Code two-liner
-    $text =~ s/^```.*?\n(.*?)\n(.*?)\n```$/::: {custom-style="DT_FIRST"}\n$1\n:::\n::: {custom-style="DT_LAST"}\n$2\n:::/mg;
+    $text =~ s/^```.*?\n(.*?)\n(.*?)\n```$/::: {custom-style="$DT_FIRST"}\n$1\n:::\n::: {custom-style="$DT_LAST"}\n$2\n:::/mg;
 
     # Code multi-liner
     #   start and end
-    $text =~ s/^```.+\n(.*)$/::: {custom-style="DT_FIRST"}\n$1\n:::\n::: {custom-style="DT_MID"}/gm;
-    $text =~ s/^(.*)\n(.*)\n```$/:::\n::: {custom-style="DT_LAST"}\n$1\n$2\n:::\n/gm;  # End of Code-Block
+    $text =~ s/^```.+\n(.*)$/::: {custom-style="$DT_FIRST"}\n$1\n:::\n::: {custom-style="$DT_MID"}/gm;
+    $text =~ s/^(.*)\n(.*)\n```$/:::\n::: {custom-style="$DT_LAST"}\n$1\n$2\n:::\n/gm;  # End of Code-Block
 
     # code in text
-    $text =~ s/`(..+?)`/\[$1\]{custom-style="CIT"}/gm;
+    $text =~ s/`(..+?)`/\[$1\]{custom-style="$CIT"}/gm;
 
     return $text;
 }
@@ -208,7 +284,7 @@ sub replaceWithGeneralCodeStyles {
 
     #  code body
     $text =~ s/^    (.*)$/$1\n/gm;                          # Code block itself starts with 4 non-breaking (!!!) spaces
-    $text =~ s/^(\d+)    (.*)$/\[$1\]{custom-style="DT_NUM"} $2\n/gm;    # Numbered Code 
+    $text =~ s/^(\d+)    (.*)$/\[$1\]{custom-style="$DT_NUM"} $2\n/gm;    # Numbered Code 
 
     return $text;
 }
@@ -217,7 +293,7 @@ sub replaceWithGherkinCodeStyles {
     my $text = shift;
 
     # keywords
-    $text =~ s/(Scenario|Given|And|When|Then)(\s|:)/\[$1\]{custom-style="DT_BOLD"}$2/gm;
+    $text =~ s/(Scenario|Given|And|When|Then)(\s|:)/\[$1\]{custom-style="$DT_BOLD"}$2/gm;
 
     return $text;
 }
@@ -226,11 +302,11 @@ sub replaceWithJavaCodeStyles {
     my $text = shift;
 
     # keywords
-    $text =~ s/(import|static|public|class|void|var|new|enum|int|float|assert|boolean) /\[$1\]{custom-style="DT_BOLD"} /gm;
+    $text =~ s/(import|static|public|class|void|var|new|enum|int|float|assert|boolean) /\[$1\]{custom-style="$DT_BOLD"} /gm;
     
     # comments
-    $text =~ s/(\/\/.*)$/\[$1\]{custom-style="DT_ITAL"}/gm;
-    $text =~ s/(\/&ast;.*?&ast;\/)/\[$1\]{custom-style="DT_ITAL"}/gm;
+    $text =~ s/(\/\/.*)$/\[$1\]{custom-style="$DT_ITAL"}/gm;
+    $text =~ s/(\/&ast;.*?&ast;\/)/\[$1\]{custom-style="$DT_ITAL"}/gm;
 
     return $text;
 }
@@ -239,10 +315,10 @@ sub replaceWithFSharpCodeStyles {
     my $text = shift;
 
     # keywords
-    $text =~ s/(type|of|let|fun|open) /\[$1\]{custom-style="DT_BOLD"} /gm;
+    $text =~ s/(type|of|let|fun|open) /\[$1\]{custom-style="$DT_BOLD"} /gm;
 
     # comments
-    $text =~ s/(\(&ast;.*?&ast;\))/\[$1\]{custom-style="DT_ITAL"}/gm;
+    $text =~ s/(\(&ast;.*?&ast;\))/\[$1\]{custom-style="$DT_ITAL"}/gm;
 
     return $text;
 }
@@ -254,10 +330,10 @@ sub replaceWithUserStoryCodeStyles {
     $text =~ s/```userstory/```\$/gm;
 
     # keywords
-    $text =~ s/(As an?|I want|so that) /\[$1\]{custom-style="BOLD"} /gm;
+    $text =~ s/(As an?|I want|so that) /\[$1\]{custom-style="$BOLD"} /gm;
 
     # placeholders
-    $text =~ s/(\(&lt;.*?&gt;\))/\[$1\]{custom-style="ITAL"}/gm;
+    $text =~ s/(\(&lt;.*?&gt;\))/\[$1\]{custom-style="$ITAL"}/gm;
 
     return $text;
 }
@@ -265,8 +341,8 @@ sub replaceWithUserStoryCodeStyles {
 sub translateEmphasizement {
     my $text = shift;
 
-    $text =~ s/\*\*(.*?)\*\*/\[$1\]{custom-style="BOLD"}/gm;
-    $text =~ s/\*(.*?)\*/\[$1\]{custom-style="ITAL"}/gm;
+    $text =~ s/\*\*(.*?)\*\*/\[$1\]{custom-style="$BOLD"}/gm;
+    $text =~ s/\*(.*?)\*/\[$1\]{custom-style="$ITAL"}/gm;
 
     return $text;
 }
@@ -276,9 +352,9 @@ sub translateDomainStorytellingEmphasizement {
 
     # Eigene Hervorhebungen
     $text =~ s/{dst-term}/{}/gm;       # Domain Storytelling term      
-    $text =~ s/{dst-def}/{custom-style="BOLD"}/gm;       # definition of a term      
-    $text =~ s/{dst-sf}/{custom-style="SCAP"}/gm;        # scope factor      
-    $text =~ s/{dst-sf-def}/{custom-style="SCAP_BOLD"}/gm;    # definition of a scope factor      
+    $text =~ s/{dst-def}/{custom-style="$BOLD"}/gm;       # definition of a term      
+    $text =~ s/{dst-sf}/{custom-style="$SCAP"}/gm;        # scope factor      
+    $text =~ s/{dst-sf-def}/{custom-style="$SCAP_BOLD"}/gm;    # definition of a scope factor      
     $text =~ s/(Back to the Leasing Example)/🚘 $1 🚘/gm; 
     $text =~ s/(Stefan|Henning)(\'s.*)(Story)/🌻 $1$2$3 🌻/gm;
 
