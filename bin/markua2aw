@@ -55,6 +55,7 @@ sub cleanup {
     $text =~ s/^\{sample(.*)$//gm;     # Leanpub-Direktiven wie {sample} ausblenden
     $text =~ s/^\{width(.*)$//gm;
     $text =~ s/^\{id(.*)$//gm;
+    $text =~ s/\{i:.*?\}//gm;          # Ignore index entries
 
     return $text;
 }
