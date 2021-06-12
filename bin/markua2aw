@@ -614,6 +614,7 @@ sub translateLevelOneHeadings {
     my $text = shift;
 
     # Frontmatter
+    $text =~ s/^# Praise for (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_PP_TTL"}\nPraise for $1\n:::/gm;
     $text =~ s/^# Domain Stories$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\nDomain Stories\n:::/gm;
     $text =~ s/^# Figures$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\nFigures\n:::/gm;
     $text =~ s/^# Foreword$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_FRWRD_TTL"}\nForeword\n:::/gm;
