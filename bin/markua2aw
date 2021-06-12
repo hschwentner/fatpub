@@ -24,11 +24,15 @@ use open qw/:std :utf8/; # UTF8 in input and output
 
 
 # Define Styles to be used
+our $BKFM_PP = 'BKFM_PP';
+our $BKFM_PP_AU_NA = 'BKFM_PP_AU_NA';
+
 our $BKRM_GLOS_DEF = 'BKRM_GLOS_DEF';
 our $BKRM_GLOS_KT = 'BKRM_GLOS_KT';
 our $BKRM_GLOS_KT_SCAP = 'BKRM_GLOS_KT_SCAP';
 our $BKRM_BIB1 = 'BKRM_BIB1';
 our $BKRM_BIB2 = 'BKRM_BIB2';
+
 our $DLG_FIRST = 'DLG_FIRST';
 our $DLG_MID = 'DLG_MID';
 our $DLG_LAST = 'DLG_LAST';
@@ -110,6 +114,7 @@ sub Markua2AW {
 
     $text = cleanup($text);
 
+    $text = translateFrontmatter($text);
     $text = translateBackmatter($text);
 
     $text = translateBodyText($text);
@@ -148,6 +153,25 @@ sub cleanup {
     $text =~ s/^\{width(.*)$//gm;
     $text =~ s/^\{id(.*)$//gm;
     $text =~ s/\{i:.*?\}//gm;          # Ignore index entries
+
+    return $text;
+}
+
+# Has to be called before translateBodyText()
+sub translateFrontmatter {
+    my $text = shift;
+
+    $text =~ s{(^# Praise for.*?^\{\{newpage\}\})}{replaceWithStylesInPraise($1)}msge;
+
+    return $text;
+}
+
+sub replaceWithStylesInPraise {
+    my $text = shift;
+
+    # Praise entries
+    $text =~ s/^\*(—.*)\*$/::: {custom-style="$BKFM_PP_AU_NA"}\n$1\n:::/gm;
+    $text =~ s/^([“A-Za-z\[\*].*)$/::: {custom-style="$BKFM_PP"}\n$1\n:::/gm;
 
     return $text;
 }
