@@ -22,84 +22,114 @@ use warnings;
 use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use Markua2Styles;
 
 # Define Styles to be used
-our $BKFM_PP = 'BKFM_PP';
-our $BKFM_PP_AU_NA = 'BKFM_PP_AU_NA';
+my %styles = (
 
-our $BKRM_GLOS_DEF = 'BKRM_GLOS_DEF';
-our $BKRM_GLOS_KT = 'BKRM_GLOS_KT';
-our $BKRM_GLOS_KT_SCAP = 'BKRM_GLOS_KT_SCAP';
-our $BKRM_BIB1 = 'BKRM_BIB1';
-our $BKRM_BIB2 = 'BKRM_BIB2';
+	# Headings
+	PART_NUM => 'PART_NUM',
+	PART_TTL => 'PART_TTL',
+	CHAP_NUM => 'CHAP_NUM',
+	CHAP_TTL => 'CHAP_TTL',
+	H1 => 'H1',
+	H2 => 'H2',
+	H3 => 'H3',
 
-our $DLG_FIRST = 'DLG_FIRST';
-our $DLG_MID = 'DLG_MID';
-our $DLG_LAST = 'DLG_LAST';
-our $DLG_SPKR = 'DLG_SPKR';
-our $SF1_TTL = 'SF1_TTL';
-our $SF1_FIRST = 'SF1_FIRST';
-our $SF2_TTL = 'SF2_TTL';
-our $SF2_FIRST = 'SF2_FIRST';
-our $HEADFIRST = 'HEADFIRST';
-our $CHAP_BM = 'CHAP_BM';
-our $CF_EPG_FIRST = 'CF_EPG_FIRST';
-our $CF_EPG_ATTR_AU_NA = 'CF_EPG_ATTR_AU_NA';
-our $EPG = 'EPG';
-our $EPG_ATTR_AU_NA = 'EPG_ATTR_AU_NA';
-our $EXT_ONLY = 'EXT_ONLY';
-our $FN = 'FN';                 # Todo...
-our $PART_NUM = 'PART_NUM';
-our $PART_TTL = 'PART_TTL';
-our $CHAP_NUM = 'CHAP_NUM';
-our $CHAP_TTL = 'CHAP_TTL';
-our $H1 = 'H1';
-our $H2 = 'H2';
-our $H3 = 'H3';
-our $BL_FIRST = 'BL_FIRST';
-our $BL_MID = 'BL_MID';
-our $BL_LAST = 'BL_LAST';
-our $BL_BL_FIRST = 'BL_BL_FIRST';
-our $BL_BL_MID = 'BL_BL_MID';
-our $BL_BL_LAST = 'BL_BL_LAST';
-our $BL_BL_DING = 'BL_BL_DING';
-our $BL_BL_BL_FIRST = 'BL_BL_BL_FIRST';
-our $BL_BL_BL_MID = 'BL_BL_BL_MID';
-our $BL_BL_BL_LAST = 'BL_BL_BL_LAST';
-our $BL_BL_BL_DING = 'BL_BL_BL_DING';
-our $NL_FIRST = 'NL_FIRST';
-our $NL_MID = 'NL_MID';
-our $NL_LAST = 'NL_LAST';
-our $NL_NUM = 'NL_NUM';
-our $ARTLIST = 'artlist';
-our $FIG_TTL = 'FIG_TTL';
-our $FIG_NUM = 'FIG_NUM';
-our $EQ_ONLY = 'EQ_ONLY';
+	# Body text
+	HEADFIRST => 'HEADFIRST',
+	CHAP_BM => 'CHAP_BM',
 
-our $CIT = 'CIT';
-our $CDT_ONLY = 'CDT_ONLY';
-our $CDT_FIRST = 'CDT_FIRST';
-our $CDT_MID = 'CDT_MID';
-our $CDT_LAST = 'CDT_LAST';
-our $DT_FIRST = 'DT_FIRST';
-our $DT_MID = 'DT_MID';
-our $DT_LAST = 'DT_LAST';
-our $DT_NUM = 'DT_NUM';
-our $DT_BOLD = 'DT_BOLD';
-our $DT_ITAL = 'DT_ITAL';
+	# Emphasizement
+	ITAL => 'ITAL',
+	BOLD => 'BOLD',
+	BOLD_ITAL => 'BOLD_ITAL',
+	SCAP => 'SCAP',
+	SCAP_ITAL => 'SCAP_ITAL',
+	SCAP_BOLD => 'SCAP_BOLD',
+	SCAP_BOLD_ITAL => 'SCAP_BOLD_ITAL',
 
-our $ITAL = 'ITAL';
-our $BOLD = 'BOLD';
-our $BOLD_ITAL = 'BOLD_ITAL';
-our $SCAP = 'SCAP';
-our $SCAP_ITAL = 'SCAP_ITAL';
-our $SCAP_BOLD = 'SCAP_BOLD';
-our $SCAP_BOLD_ITAL = 'SCAP_BOLD_ITAL';
+	# Lists
+	BL_FIRST => 'BL_FIRST',
+	BL_MID => 'BL_MID',
+	BL_LAST => 'BL_LAST',
+	BL_BL_FIRST => 'BL_BL_FIRST',
+	BL_BL_MID => 'BL_BL_MID',
+	BL_BL_LAST => 'BL_BL_LAST',
+	BL_BL_DING => 'BL_BL_DING',
+	BL_BL_BL_FIRST => 'BL_BL_BL_FIRST',
+	BL_BL_BL_MID => 'BL_BL_BL_MID',
+	BL_BL_BL_LAST => 'BL_BL_BL_LAST',
+	BL_BL_BL_DING => 'BL_BL_BL_DING',
+	NL_FIRST => 'NL_FIRST',
+	NL_MID => 'NL_MID',
+	NL_LAST => 'NL_LAST',
+	NL_NUM => 'NL_NUM',
+
+	# Images and figures
+	ARTLIST => 'artlist',
+	FIG_TTL => 'FIG_TTL',
+	FIG_NUM => 'FIG_NUM',
+
+	# Footnotes
+	FN => 'FN',                 # Todo...
+
+	# Quotes and extracts
+	CF_EPG_FIRST => 'CF_EPG_FIRST',
+	CF_EPG_ATTR_AU_NA => 'CF_EPG_ATTR_AU_NA',
+	EPG => 'EPG',
+	EPG_ATTR_AU_NA => 'EPG_ATTR_AU_NA',
+	EXT_ONLY => 'EXT_ONLY',
+
+	# Dialogue
+	DLG_FIRST => 'DLG_FIRST',
+	DLG_MID => 'DLG_MID',
+	DLG_LAST => 'DLG_LAST',
+	DLG_SPKR => 'DLG_SPKR',
+
+	# Equations
+	EQ_ONLY => 'EQ_ONLY',
+
+	# Code
+	CIT => 'CIT',
+	CDT_ONLY => 'CDT_ONLY',
+	CDT_FIRST => 'CDT_FIRST',
+	CDT_MID => 'CDT_MID',
+	CDT_LAST => 'CDT_LAST',
+	DT_FIRST => 'DT_FIRST',
+	DT_MID => 'DT_MID',
+	DT_LAST => 'DT_LAST',
+	DT_NUM => 'DT_NUM',
+	DT_BOLD => 'DT_BOLD',
+	DT_ITAL => 'DT_ITAL',
+
+	# Tips and notes
+	SF1_TTL => 'SF1_TTL',
+	SF1_FIRST => 'SF1_FIRST',
+	SF2_TTL => 'SF2_TTL',
+	SF2_FIRST => 'SF2_FIRST',
 
 # TODO: Asides and boxes
 
+	# Praise
+	BKFM_PP => 'BKFM_PP',
+	BKFM_PP_AU_NA => 'BKFM_PP_AU_NA',
+
+	# Glossary
+	BKRM_GLOS_DEF => 'BKRM_GLOS_DEF',
+	BKRM_GLOS_KT => 'BKRM_GLOS_KT',
+	BKRM_GLOS_KT_SCAP => 'BKRM_GLOS_KT_SCAP',
+
+	# Bibliograpy
+	BKRM_BIB1 => 'BKRM_BIB1',
+	BKRM_BIB2 => 'BKRM_BIB2',
+
 # TODO: replacement of styles for Part, Acknowledgements, About the Authors, etc.
-#our $ = '';
+
+);
+
 
 
 my $text;
@@ -107,558 +137,4 @@ my $text;
 	local $/;               # Slurp the whole file
 	$text = <>;             # Use file if specified or stdin otherwise
 }
-print Markua2AW($text);
-
-sub Markua2AW {
-    my $text = shift;
-
-    $text = cleanup($text);
-
-    $text = translateFrontmatter($text);
-    $text = translateBackmatter($text);
-
-    $text = translateBodyText($text);
-    $text = translateSubHeadings($text);
-    $text = translateFigures($text);
-    $text = translateLists($text);
-    $text = translateSourceCode($text);
-
-    $text = translateEmphasizement($text);
-    $text = translateDomainStorytellingEmphasizement($text);
-    
-    $text = translatePartText($text);
-    $text = translateAsides($text);
-
-    $text = translateForewordText($text);
-    $text = translatePrefaceText($text);
-    $text = translateAcknowledgmentsText($text);
-    $text = translateAboutTheAuthorsText($text);
-
-    $text = translateAppendixText($text);
-    $text = translateBibliographyText($text);
-
-    # Main headings as last step
-    $text = translateLevelOneHeadings($text);
-
-    return $text;
-}
-
-sub cleanup {
-    my $text = shift;
-
-    $text =~ s/^%%:::(.*)$/:::$1/gm;   # Für Leanpub auskommentiert, für DOCX einkommentieren
-    $text =~ s/^%%(.*?)\n//gm;         # Kommentare starten mit ^%%
-    $text =~ s/^ *$//gm;               # Lines with only whitespace                                               # Kommentare starten mit ^%%
-    $text =~ s/^\{sample(.*)$//gm;     # Leanpub-Direktiven wie {sample} ausblenden
-    $text =~ s/^\{width(.*)$//gm;
-    $text =~ s/^\{id(.*)$//gm;
-    $text =~ s/\{i:.*?\}//gm;          # Ignore index entries
-
-    return $text;
-}
-
-# Has to be called before translateBodyText()
-sub translateFrontmatter {
-    my $text = shift;
-
-    $text =~ s{(^# Praise for.*?^\{\{newpage\}\})}{replaceWithStylesInPraise($1)}msge;
-
-    return $text;
-}
-
-sub replaceWithStylesInPraise {
-    my $text = shift;
-
-    # Praise entries
-    $text =~ s/^\*(—.*)\*$/::: {custom-style="$BKFM_PP_AU_NA"}\n$1\n:::/gm;
-    $text =~ s/^([“A-Za-z\[\*].*)$/::: {custom-style="$BKFM_PP"}\n$1\n:::/gm;
-
-    return $text;
-}
-
-# Has to be called before translateBodyText()
-sub translateBackmatter {
-    my $text = shift;
-
-    # Glossary entries
-    $text =~ s/^\*{2}\[(.*?)\]\{dst-sf\}—\*{2} (.*)$/::: {custom-style="$BKRM_GLOS_DEF"}\n[$1]{custom-style="$BKRM_GLOS_KT_SCAP"}[—]{custom-style="$BKRM_GLOS_KT"}$2\n:::/gm;
-    $text =~ s/^\*{2}(.*?—)\*{2} (.*)$/::: {custom-style="$BKRM_GLOS_DEF"}\n[$1]{custom-style="$BKRM_GLOS_KT"}$2\n:::/gm;
-    # Bibliography entries
-    $text =~ s/\n\*{2}(\[.*?\])\*{2}(?:\s{2})?\n(.*?)\n/\n::: {custom-style="$BKRM_BIB1"}\n$1\n:::\n::: {custom-style="$BKRM_BIB2"}\n$2\n:::\n/gm;
-
-    return $text;
-}
-
-# Has to be called before translateSubHeadings() to determine first paragraphs
-sub translateBodyText {
-    my $text = shift;
-
-    # Dialogues
-    $text =~ s/(\n(?!\*{4}).*\n\n+)\*{4}(.*?:)\*{4}(.*?)\n/$1::: {custom-style="$DLG_FIRST"}\n[$2]{custom-style="$DLG_SPKR"} $3\n:::\n/g;
-    $text =~ s/\n\*{4}(.*?:)\*{4}(.*?)(\n\n+(?!\*{4}).*\n)/\n::: {custom-style="$DLG_LAST"}\n[$1]{custom-style="$DLG_SPKR"} $2\n:::$3/g;
-    $text =~ s/^\*{4}(.*?:)\*{4}(.*)$/::: {custom-style="$DLG_MID"}\n[$1]{custom-style="$DLG_SPKR"} $2\n:::/gm;
-    # Tips, Notes
-    $text =~ s/^I> (.*)$/::: {custom-style="$SF1_TTL"}\nNote\n:::\n::: {custom-style="$SF1_FIRST"}\n$1\n:::/gm;
-    $text =~ s/^T> (.*)$/::: {custom-style="$SF2_TTL"}\nTip\n:::\n::: {custom-style="$SF2_FIRST"}\n$1\n:::/gm;
-    # Paragraphs
-    $text =~ s/((?:^|\n)#.*(?:\n+>.*)?(?:\n+\!.*)?)\n\n+([A-Za-z\[\*].*)\n+/$1\n\n::: {custom-style="$HEADFIRST"}\n$2\n:::\n\n/gm; # First paragraph after heading with optional epigraph and optional opening picture
-    $text =~ s/((?:^|\n)#.*(?:\n+\!.*)?)\n\n+([A-Za-z\[\*].*)\n+/$1\n\n::: {custom-style="$HEADFIRST"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
-    $text =~ s/\n\n([A-Za-z\[\*].*)\n+/\n\n::: {custom-style="$CHAP_BM"}\n$1\n:::\n\n/gm;  # einmal für ungerade Absatznummer
-    $text =~ s/\n\n([A-Za-z\[\*].*)\n+/\n\n::: {custom-style="$CHAP_BM"}\n$1\n:::\n\n/gm;  # Doppelt für Gerade Absatznummer
-    # Epigraphs/Block Quotations
-    $text =~ s/(^# .*\n+)> (.*)(—.*)$/$1::: {custom-style="$CF_EPG_FIRST"}\n$2\n:::\n::: {custom-style="$CF_EPG_ATTR_AU_NA"}\n$3\n:::\n/gm; # Opening epigraph
-    $text =~ s/(^##+ .*\n+)> (.*)(—.*)$/$1::: {custom-style="$EPG"}\n$2\n:::\n::: {custom-style="$EPG_ATTR_AU_NA"}\n$3\n:::/gm;  # Epigraph with author
-    $text =~ s/(^##+ .*\n+)> (.*)$/$1::: {custom-style="$EPG"}\n$2\n:::/gm;  # Epigraph
-    $text =~ s/^> (.*)$/::: {custom-style="$EXT_ONLY"}\n$1\n:::/gm;  # Extract
-
-# TODO:
-#       [^fn]:      Footnotes   -> custom-style="FN"
-#        {blockquote}           =>   {custom-style="EXT_ONLY"}   ???
-
-    return $text;
-}
-
-sub translateSubHeadings {
-    my $text = shift;
-
-    $text =~ s/^## (.*)$/::: {custom-style="$H1"}\n$1\n:::/gm;
-    $text =~ s/^### (.*)$/::: {custom-style="$H2"}\n$1\n:::/gm;
-    $text =~ s/^#### (.*)$/::: {custom-style="$H3"}\n$1\n:::/gm;
-    
-    return $text;
-}
-
-sub translateLists {
-    my $text = shift;
-
-    # Bulleted, level 1
-    $text =~ s/\n\n- (.*)\n/\n\n::: {custom-style="$BL_FIRST"}\n$1\n:::\n/gm;
-    $text =~ s/\n- (.*)\n\n/\n::: {custom-style="$BL_LAST"}\n$1\n:::\n\n/gm;
-    $text =~ s/^- (.*)$/::: {custom-style="$BL_MID"}\n$1\n:::/gm;            
-    # Bulleted, level 2
-    $text =~ s/(\n(?!  -).*?\n+)  - (.*?)\n/$1::: {custom-style="$BL_BL_FIRST"}\n\[○\]{custom-style="$BL_BL_DING"}\t$2\n:::\n/gm;
-    $text =~ s/\n  - (.*?)(\n+(?!  -))/\n::: {custom-style="$BL_BL_LAST"}\n\[○\]{custom-style="$BL_BL_DING"}\t$1\n:::$2/gm;
-    $text =~ s/^  - (.*)$/::: {custom-style="$BL_BL_MID"}\n\[○\]{custom-style="$BL_BL_DING"}	$1\n:::/gm;                               
-    # Bulleted, level 3
-    $text =~ s/(\n(?!    -).*?\n+)    - (.*?)\n/$1::: {custom-style="$BL_BL_BL_FIRST"}\n\[•\]{custom-style="$BL_BL_BL_DING"}\t$2\n:::\n/gm;
-    $text =~ s/\n    - (.*?)(\n+(?!    -))/\n::: {custom-style="$BL_BL_BL_LAST"}\n\[•\]{custom-style="$BL_BL_BL_DING"}\t$1\n:::$2/gm;
-    $text =~ s/^    - (.*)$/::: {custom-style="$BL_BL_BL_MID"}\n\[•\]{custom-style="$BL_BL_BL_DING"}	$1\n:::/gm;   
-    # Numbered                            
-    $text =~ s/(^1.) (.*)$/::: {custom-style="$NL_FIRST"}\n\[$1\]{custom-style="$NL_NUM"} $2\n:::/gm;
-    $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$NL_LAST"}\n\[$1\]{custom-style="$NL_NUM"} $2\n:::$3/gm;      
-    $text =~ s/(^[2-9].) (.*)$/::: {custom-style="$NL_MID"}\n\[$1\]{custom-style="$NL_NUM"} $2\n:::/gm;      
-
-    return $text;
-}
-
-sub translateFigures {
-    my $text = shift;
-
-    $text =~ s/^\!\[Figure[ | ]([0-9IVX\.\-]*)(.*)\]\((.*)\)(.*)$/::: {custom-style="$ARTLIST"}\n![]($3)$4\n:::\n::: {custom-style="$FIG_TTL"}\n[Figure $1]{custom-style="$FIG_NUM"} $2\n:::/gm; # Abbildungen
-    $text =~ s/^\!\[(.+)\]((.*))$/::: {custom-style="$ARTLIST"}\n![]($2)\n:::\n::: {custom-style="$FIG_TTL"}\n$1\n:::/gm; 
-    $text =~ s/^(\!\[\].*)$/::: {custom-style="$ARTLIST"}\n$1\n:::/gm; # Image without caption
-
-    return $text;
-}
-
-sub translateSourceCode {
-    my $text = shift;
-
-    # Escaping and line numbering
-    $text =~ s{(^```.*?^```)}{replaceWithGeneralCodeStyles($1)}msge;
-
-    # Syntax highlighting
-    $text =~ s{(^```gherkin.*?^```)}{replaceWithGherkinCodeStyles($1)}msge;
-    $text =~ s{(^```java.*?^```)}{replaceWithJavaCodeStyles($1)}msge;
-    $text =~ s{(^```fsharp.*?^```)}{replaceWithFSharpCodeStyles($1)}msge;
-    $text =~ s{(^```userstory.*?^```)}{replaceWithUserStoryCodeStyles($1)}msge;
-
-    # Equations
-    $text =~ s/^```\$\n(.*?)\n```$/::: {custom-style="$EQ_ONLY"}\n$1\n:::/mg;
-
-    # Code one-liner
-    $text =~ s/^```.*?\n(.*?)\n```$/::: {custom-style="$CDT_ONLY"}\n$1\n:::/mg;
-
-    # Code two-liner
-    $text =~ s/^```.*?\n(.*?)\n(.*?)\n```$/::: {custom-style="$DT_FIRST"}\n$1\n:::\n::: {custom-style="$DT_LAST"}\n$2\n:::/mg;
-
-    # Code multi-liner
-    #   start and end
-    $text =~ s/^```.+\n(.*)$/::: {custom-style="$DT_FIRST"}\n$1\n:::\n::: {custom-style="$DT_MID"}/gm;
-    $text =~ s/^(.*)\n(.*)\n```$/:::\n::: {custom-style="$DT_LAST"}\n$1\n$2\n:::\n/gm;  # End of Code-Block
-
-    # code in text
-    $text =~ s/`(..+?)`/\[$1\]{custom-style="$CIT"}/gm;
-
-    return $text;
-}
-
-sub replaceWithGeneralCodeStyles {
-    my $text = shift;
-
-    # Escape Markdown special characters
-    $text =~ s/\*/&ast;/gm;   # Escape asterisk
-    $text =~ s/\</&lt;/gm;    # Escape opening angle bracket
-    $text =~ s/\>/&gt;/gm;    # Escape closing angle bracket
-    
-    # Escape Pandoc's smart typography
-    $text =~ s/\"/&quot;/gm;  # Escape double quotation marks
-    $text =~ s/\'/&apos;/gm;  # Escape apostroph and single quotation marks
-    $text =~ s/\.\.\./&#46;&#46;&#46;/gm;  # Escape ellipsis
-
-    #  code body
-    $text =~ s/^    (.*)$/$1\n/gm;                          # Code block itself starts with 4 non-breaking (!!!) spaces
-    $text =~ s/^(\d+)    (.*)$/\[$1\]{custom-style="$DT_NUM"} $2\n/gm;    # Numbered Code 
-
-    return $text;
-}
-
-sub replaceWithGherkinCodeStyles {
-    my $text = shift;
-
-    # keywords
-    $text =~ s/(Scenario|Given|And|When|Then)(\s|:)/\[$1\]{custom-style="$DT_BOLD"}$2/gm;
-
-    return $text;
-}
-
-sub replaceWithJavaCodeStyles {
-    my $text = shift;
-
-    # keywords
-    $text =~ s/(import|static|public|class|void|var|new|enum|int|float|assert|boolean) /\[$1\]{custom-style="$DT_BOLD"} /gm;
-    
-    # comments
-    $text =~ s/(\/\/.*)$/\[$1\]{custom-style="$DT_ITAL"}/gm;
-    $text =~ s/(\/&ast;.*?&ast;\/)/\[$1\]{custom-style="$DT_ITAL"}/gm;
-
-    return $text;
-}
-
-sub replaceWithFSharpCodeStyles {
-    my $text = shift;
-
-    # keywords
-    $text =~ s/(type|of|let|fun|open) /\[$1\]{custom-style="$DT_BOLD"} /gm;
-
-    # comments
-    $text =~ s/(\(&ast;.*?&ast;\))/\[$1\]{custom-style="$DT_ITAL"}/gm;
-
-    return $text;
-}
-
-sub replaceWithUserStoryCodeStyles {
-    my $text = shift;
-
-    # Treat user stories as equations
-    $text =~ s/```userstory/```\$/gm;
-
-    # keywords
-    $text =~ s/(As an?|I want|so that) /\[$1\]{custom-style="$BOLD"} /gm;
-
-    # placeholders
-    $text =~ s/(\(&lt;.*?&gt;\))/\[$1\]{custom-style="$ITAL"}/gm;
-
-    return $text;
-}
-
-sub translateEmphasizement {
-    my $text = shift;
-
-    $text =~ s/\*\*(.*?)\*\*/\[$1\]{custom-style="$BOLD"}/gm;
-    $text =~ s/\*(.*?)\*/\[$1\]{custom-style="$ITAL"}/gm;
-
-    return $text;
-}
-
-sub translateDomainStorytellingEmphasizement {
-    my $text = shift;
-
-    # Eigene Hervorhebungen
-    $text =~ s/{dst-term}/{}/gm;       # Domain Storytelling term      
-    $text =~ s/{dst-def}/{custom-style="$BOLD"}/gm;       # definition of a term      
-    $text =~ s/{dst-sf}/{custom-style="$SCAP"}/gm;        # scope factor      
-    $text =~ s/{dst-sf-def}/{custom-style="$SCAP_BOLD"}/gm;    # definition of a scope factor      
-    $text =~ s/(Back to the Leasing Example)/🚘 $1 🚘/gm; 
-    $text =~ s/(Stefan|Henning)(\'s.*)(Story)/🌻 $1$2$3 🌻/gm;
-
-    return $text;
-}
-
-sub translatePartText {
-    my $text = shift;
-
-    $text =~ s{(^# Part.*?^# Chapter)}{replaceWithStylesInPart($1)}msge;
-
-    return $text;
-}
-
-sub replaceWithStylesInPart {
-    my $text = shift;
-
-    # Headings
-    $text =~ s/"H1"/"PART_H1"/g;
-    $text =~ s/"H2"/"PART_H2"/g;
-
-    # Paragraphs
-    $text =~ s/"HEADFIRST"/"PART_FIRST"/g; #TODO: or PART_HEADFIRST??
-    $text =~ s/"CHAP_BM"/"PART"/g;
-
-    # Lists, bulleted
-    $text =~ s/"BL_FIRST"/"PART_BL_FIRST"/g;
-    $text =~ s/"BL_MID"/"PART_BL_MID"/g;
-    $text =~ s/"BL_LAST"/"PART_BL_LAST"/g;
-
-    # Code
-    $text =~ s/"CDT_ONLY"/"PART_CDT_ONLY"/g;
-    $text =~ s/"CDT_FIRST"/"PART_CDT_FIRST"/g;
-    $text =~ s/"CDT_MID"/"PART_CDT_MID"/g;
-    $text =~ s/"CDT_LAST"/"PART_CDT_LAST"/g;
-
-    # Figures
-    $text =~ s/"FIG_TTL"/"PART_FIG_TTL"/g;
-    $text =~ s/"FIG_NUM"/"PART_FIG_NUM"/g;
-
-    # Tables
-    $text =~ s/"TBL"/"PART_TBL"/g;
-    $text =~ s/"TBL_COLHD"/"PART_TBL_COLHD"/g;
-    $text =~ s/"TBL_TTL"/"PART_TBL_TTL"/g;
-    $text =~ s/"TBL_NUM"/"PART_TBL_NUM"/g;
-
-    return $text;
-}
-
-sub translateAsides {
-    my $text = shift;
-
-    $text =~
-        s{
-            (
-                \{aside\}
-                .*?
-                \{\/aside\}
-            )
-        }{
-            replaceWithStylesInBox($1)
-        }sxge;
-    $text =~ s/^(\{\/?aside\})$/::: {custom-style="CHAP_BM_PD"}\n$1\n:::/gm;      
-
-    return $text;
-}
-
-sub replaceWithStylesInBox {
-    my $text = shift;
-
-    # Headings
-    $text =~ s/"H1"/"BX1_TTL"/g;
-    $text =~ s/"H2"/"BX1_H1"/g;
-
-    # Paragraphs
-    $text =~ s/"HEADFIRST"/"BX1_FIRST"/g;
-    $text =~ s/"CHAP_BM"/"BX1"/g;
-
-    # Dialogue
-    $text =~ s/"DLG_FIRST"/"BX1_DLG_FIRST"/g;
-    $text =~ s/"DLG_MID"/"BX1_DLG_MID"/g;
-    $text =~ s/"DLG_LAST"/"BX1_DLG_LAST"/g;
-
-    # Equations
-    $text =~ s/"EQ_ONLY"/"BX1_EQ_ONLY"/g;
-
-    # Lists, bulleted
-    #       level 1
-    $text =~ s/::: \{custom-style="BL_FIRST"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_FIRST"}\n[•\]{custom-style="BX1_BL_DING"}\t$1\n:::/gm;
-    $text =~ s/::: \{custom-style="BL_MID"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_MID"}\n[•\]{custom-style="BX1_BL_DING"}\t$1\n:::/gm;
-    $text =~ s/::: \{custom-style="BL_LAST"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_LAST"}\n[•\]{custom-style="BX1_BL_DING"}\t$1\n:::/gm;
-
-    # Lists, numbered
-    #       level 1
-    $text =~ s/"NL_FIRST"/"BX1_NL_FIRST"/g;
-    $text =~ s/"NL_MID"/"BX1_NL_MID"/g;
-    $text =~ s/"NL_LAST"/"BX1_NL_LAST"/g;
-
-    # Figures
-    $text =~ s/"FIG_TTL"/"BX1_FIG_TTL"/g;
-    $text =~ s/"FIG_NUM"/"BX1_FIG_NUM"/g;
-
-    return $text;
-}
-
-sub translateForewordText {
-    my $text = shift;
-
-    $text =~ s{(^# Foreword.*?^# )}{replaceWithStylesInForeword($1)}msge;
-
-    return $text;
-}
-
-sub replaceWithStylesInForeword {
-    my $text = shift;
-
-    # Paragraphs
-    $text =~ s/"HEADFIRST"/"BKFM_FRWRD_FIRST"/g;
-    $text =~ s/"CHAP_BM"/"BKFM_FRWRD"/g;
-
-    return $text;
-}
-
-sub translatePrefaceText {
-    my $text = shift;
-
-    $text =~ s{(^# Preface.*?^# )}{replaceWithStylesInPreface($1)}msge;
-
-    return $text;
-}
-
-sub replaceWithStylesInPreface {
-    my $text = shift;
-
-    # Headings
-    $text =~ s/"H1"/"BKFM_PREF_H1"/g;
-    $text =~ s/"H2"/"BKFM_PREF_H2"/g;
-
-    # Paragraphs
-    $text =~ s/"HEADFIRST"/"BKFM_PREF_FIRST"/g;
-    $text =~ s/"CHAP_BM"/"BKFM_PREF"/g;
-    $text =~ s/"CHAP_BM_CON"/"BKFM_PREF_CON"/g;
-
-    # Lists, bulleted
-    $text =~ s/"BL_FIRST"/"BKFM_PREF_BL_FIRST"/g;
-    $text =~ s/"BL_MID"/"BKFM_PREF_BL_MID"/g;
-    $text =~ s/"BL_LAST"/"BKFM_PREF_BL_LAST"/g;
-
-    # Lists, numbered
-    $text =~ s/"NL_FIRST"/"BKFM_PREF_NL_FIRST"/g;
-    $text =~ s/"NL_MID"/"BKFM_PREF_NL_MID"/g;
-    $text =~ s/"NL_LAST"/"BKFM_PREF_NL_LAST"/g;
-
-    # Equations
-    $text =~ s/"EQ"/"BKFM_PREF_EQ"/g;
-
-    # Code
-    $text =~ s/"CDT_ONLY"/"BKFM_PREF_CDT_ONLY"/g;
-    $text =~ s/"CDT_FIRST"/"BKFM_PREF_CDT_FIRST"/g;
-    $text =~ s/"CDT_MID"/"BKFM_PREF_CDT_MID"/g;
-    $text =~ s/"CDT_LAST"/"BKFM_PREF_CDT_LAST"/g;
-
-# TODO:
-#    # Tables
-#    $text =~ s/"TBL"/"BKFM_PREF_TBL"/g;
-#    $text =~ s/"TBL_COLHD"/"BKFM_PREF_TBL_COLHD"/g;
-#    $text =~ s/"TBL_TTL"/"BKFM_PREF_TBL_TTL"/g;
-#    $text =~ s/"TBL_NUM"/"BKFM_PREF_TBL_NUM"/g;
-
-    return $text;
-}
-
-sub translateAcknowledgmentsText {
-    my $text = shift;
-
-    $text =~ s{(^# Acknowledgments.*?^# )}{replaceWithStylesInAcknowledgments($1)}msge;
-
-    return $text;
-}
-
-sub replaceWithStylesInAcknowledgments {
-    my $text = shift;
-
-    # Paragraphs
-    $text =~ s/"HEADFIRST"/"BKFM_ACK_FIRST"/g;
-    $text =~ s/"CHAP_BM"/"BKFM_ACK"/g;
-
-# TODO:
-#    # Author name
-#    $text =~ s/"??"/"BKFM_ACK_AU_NA"/g;
-
-    return $text;
-}
-
-sub translateAboutTheAuthorsText {
-    my $text = shift;
-
-    $text =~ s{(^# About the Authors?.*?(?:^# |\Z))}{replaceWithStylesInAboutTheAuthors($1)}msge;
-
-    return $text;
-}
-
-sub replaceWithStylesInAboutTheAuthors {
-    my $text = shift;
-
-    # Paragraphs
-    $text =~ s/"HEADFIRST"/"BKFM_ABA_FIRST"/g;
-    $text =~ s/"CHAP_BM"/"BKFM_ABA"/g;
-
-    return $text;
-}
-
-sub translateAppendixText {
-    my $text = shift;
-
-    $text =~ s{(^# Appendix.*?^# )}{replaceWithStylesInAppendix($1)}msge;
-
-    return $text;
-}
-
-sub replaceWithStylesInAppendix {
-    my $text = shift;
-
-    # Paragraphs
-    $text =~ s/"HEADFIRST"/"BKRM_APP_HEADFIRST"/g;
-    $text =~ s/"CHAP_BM"/"BKRM_APP_INDENT"/g;
-
-# TODO:
-#    # Figures
-#    $text =~ s/"??"/"BKRM_FIG_TTL"/g;
-
-    return $text;
-}
-
-sub translateBibliographyText {
-    my $text = shift;
-
-    $text =~ s{(^# Bibliography.*?^# )}{replaceWithStylesInBibliography($1)}msge;
-
-    return $text;
-}
-
-sub replaceWithStylesInBibliography {
-    my $text = shift;
-
-    # Headings
-    $text =~ s/"H1"/"BKRM_BIB_H1"/g;
-
-    # Paragraphs
-    $text =~ s/"HEADFIRST"/"BKRM_BIB_HEADFIRST"/g;
-    $text =~ s/"CHAP_BM"/"BKRM_BIB_CHAP_BM"/g;
-
-    return $text;
-}
-
-sub translateLevelOneHeadings {
-    my $text = shift;
-
-    # Frontmatter
-    $text =~ s/^# Praise for (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_PP_TTL"}\nPraise for $1\n:::/gm;
-    $text =~ s/^# Domain Stories$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\nDomain Stories\n:::/gm;
-    $text =~ s/^# Figures$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\nFigures\n:::/gm;
-    $text =~ s/^# Foreword$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_FRWRD_TTL"}\nForeword\n:::/gm;
-    $text =~ s/^# Preface$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_PREF_TTL"}\nPreface\n:::/gm;
-    $text =~ s/^# Acknowledgments$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_ACK_TTL"}\nAcknowledgments\n:::/gm;
-    $text =~ s/^# About the Authors?$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_ABASET_TTL"}\nAbout the Authors\n:::/gm;
-
-    # Headings Backmatter
-    $text =~ s/^# Appendix (.*): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_APP_LET"}\nAppendix $1\n:::\n::: {custom-style="BKRM_APP_TTL"}\n$2\n:::/gm;
-    $text =~ s/^# Glossary$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_GLOSSET_TTL"}\nGlossary\n:::/gm;
-    $text =~ s/^# Bibliography$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_BIB_TTL"}\nBibliography\n:::/gm;
-    $text =~ s/^# Index$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_IDX_TTL"}\nIndex\n:::/gm;
-
-    # Headings Mainmatter
-    $text =~ s/\n(\{.*\})\n(#.*?)\n/\n\n$2\n$1\n\n/gm; #Move beginning {} with link anchors to end of heading
-    $text =~ s/^# Part (.*): (.*) #$/\n\n{{newpage}}\n\n::: {custom-style="PART_NUM"}\nPart $1\n:::\n::: {custom-style="PART_TTL"}\n$2\n:::/gm;
-    $text =~ s/^# Chapter (.*): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="CHAP_NUM"}\nChapter $1\n:::\n::: {custom-style="CHAP_TTL"}\n$2\n:::/gm;
-    
-    # Delete starting empty page
-    $text =~ s/^\n*\{\{newpage\}\}\n*//;
-
-    return $text;
-}
+print Markua2Styles($text, %styles);
