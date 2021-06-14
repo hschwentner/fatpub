@@ -576,8 +576,8 @@ sub translateLevelOneHeadings {
 
     # Headings Mainmatter
     $text =~ s/\n(\{.*\})\n(#.*?)\n/\n\n$2\n$1\n\n/gm; #Move beginning {} with link anchors to end of heading
-    $text =~ s/^# Part (.*): (.*) #$/\n\n{{newpage}}\n\n::: {custom-style="PART_NUM"}\nPart $1\n:::\n::: {custom-style="PART_TTL"}\n$2\n:::/gm;
-    $text =~ s/^# Chapter (.*): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="CHAP_NUM"}\nChapter $1\n:::\n::: {custom-style="CHAP_TTL"}\n$2\n:::/gm;
+    $text =~ s/^# Part (.*): (.*) #$/\n\n{{newpage}}\n\n::: {custom-style="$styles{'PART_NUM'}"}\nPart $1\n:::\n::: {custom-style="$styles{'PART_TTL'}"}\n$2\n:::/gm;
+    $text =~ s/^# Chapter (.*): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="$styles{'CHAP_NUM'}"}\nChapter $1\n:::\n::: {custom-style="$styles{'CHAP_TTL'}"}\n$2\n:::/gm;
     
     # Delete starting empty page
     $text =~ s/^\n*\{\{newpage\}\}\n*//;
