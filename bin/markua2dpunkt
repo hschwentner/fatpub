@@ -71,7 +71,7 @@ my %styles = (
 	# TODO: Liste_a_Folge
 
 	# Images and figures
-	ARTLIST => 'artlist',
+	ARTLIST => 'Marginal-Abb.',
 	FIG_TTL => 'Marginal-Abb.',
 	FIG_NUM => 'FIG_NUM',
 
