@@ -1,0 +1,114 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+
+use utf8;                # UTF8 in sourcecode
+use open qw/:std :utf8/; # UTF8 in input and output
+
+my $text;
+{
+	local $/;               # Slurp the whole file
+	$text = <>;             # Use file if specified or stdin otherwise
+}
+print Dpunkt2Markua($text);
+
+sub Dpunkt2Markua {
+    my $text = shift;
+
+    $text = cleanup($text);
+
+    $text = translateBodyText($text);
+    $text = translateSubHeadings($text);
+    $text = translateFigures($text);
+    $text = translateLists($text);
+    $text = translateSourceCode($text);
+    
+    $text = translateEmphasizement($text);
+
+    return $text;
+}
+
+sub cleanup {
+    my $text = shift;
+
+    $text =~ s/(?<!\!)\[([^\]]*?)\]\{custom-style="Absatzstandardschrift"\}/$1/gm;
+
+    return $text;
+}
+
+sub translateSubHeadings {
+    my $text = shift;
+
+    $text =~ s/^(\d\.)  ::: \{custom-style="Überschrift-2"\}\n    (.*)\n    :::$/## $2/gm;
+    $text =~ s/^(\d\d\.) ::: \{custom-style="Überschrift-2"\}\n    (.*)\n    :::$/## $2/gm;
+    $text =~ s/^(\d\.)  ::: \{custom-style="Überschrift-3"\}\n    (.*)\n    :::$/### $2/gm;
+    $text =~ s/^(\d\d\.) ::: \{custom-style="Überschrift-3"\}\n    (.*)\n    :::$/### $2/gm;
+    $text =~ s/^(\d\.)  ::: \{custom-style="Überschrift-4"\}\n    (.*)\n    :::$/#### $2/gm;
+    $text =~ s/^(\d\d\.) ::: \{custom-style="Überschrift-4"\}\n    (.*)\n    :::$/#### $2/gm;
+    $text =~ s/^::: \{custom-style="Überschrift-zwi"\}\n(.*)\n:::$/##### $1/gm;
+
+    return $text;
+}
+
+sub translateBodyText {
+    my $text = shift;
+
+    $text =~ s/^::: \{custom-style="Haupttext_Anfang"\}\n(.*?)\n:::$/$1/gsm;
+    $text =~ s/^::: \{custom-style="Haupttext_Folge"\}\n(.*?)\n:::$/$1/gsm;
+
+    # Delete empties
+    $text =~ s/^::: \{custom-style="Haupttext_Anfang"\}\n:::$//gm;
+    $text =~ s/^::: \{custom-style="Haupttext_Folge"\}\n:::$//gm;
+
+    return $text;
+}
+
+sub translateLists {
+    my $text = shift;
+
+    $text =~ s/^-   ::: \{custom-style="Liste_Punkt_Anfang"\}\n    (.*)\n    :::$/- $1/gm;
+    $text =~ s/^-   ::: \{custom-style="Liste_Punkt_Folge"\}\n    (.*)\n    :::$/- $1/gm;
+
+    $text =~ s/^-   ::: \{custom-style="Liste_Strich_Anfang"\}\n    (.*)\n    :::$/    - $1/gm;
+    $text =~ s/^-   ::: \{custom-style="Liste_Strich_Folge"\}\n    (.*)\n    :::$/    - $1/gm;
+
+    $text =~ s/^-   ::: \{custom-style="Haupttext_Folge"\}\n    (.*)\n    :::$/- $1/gm;
+
+    # Pack list entries
+    $text =~ s/^-(.*)\n\n-/-$1\n-/gm;
+    $text =~ s/^-(.*)\n\n-/-$1\n-/gm;
+
+    return $text;
+}
+
+sub translateFigures {
+    my $text = shift;
+
+    $text =~ s/\d\.  ::: \{custom-style="Marginal-Abb\."\}\n    \!\[\]\((.*?)\)(.*)\n    :::/![$2]($1)/gm;
+    $text =~ s/\d\d\. ::: \{custom-style="Marginal-Abb\."\}\n    \!\[\]\((.*?)\)(.*)\n    :::/![$2]($1)/gm;
+ 
+    $text =~ s/\!\[\]\((.*?)\)\n\n(Abbildung.*$)/![$2]($1)/gm;
+
+    $text =~ s/\!\[\]\((.*?)\)(.*)\n\n\d\.  ::: \{custom-style="Marginal-Abb\."\}\n    (.*)\n    :::/$2\n\n![$3]($1)/gm;
+    $text =~ s/\!\[\]\((.*?)\)(.*)\n\n\d\d\. ::: \{custom-style="Marginal-Abb\."\}\n    (.*)\n    :::/$2\n\n![$3]($1)/gm;
+
+    return $text;
+}
+sub translateEmphasizement {
+    my $text = shift;
+
+    $text =~ s/(?<!\!)\[([^\]]*?)\]\{custom-style="Kursiv"\}/*$1*/gm;
+    $text =~ s/(?<!\!)\[([^\]]*?)\]\{custom-style="Fett"\}/**$1**/gm;
+
+    return $text;
+}
+
+sub translateSourceCode {
+    my $text = shift;
+
+    $text =~ s/(?<!\!)\[([^\]]*?)\]\{custom-style="Code"\}/`$1`/gm;
+
+    return $text;
+}
