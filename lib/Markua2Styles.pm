@@ -177,7 +177,7 @@ sub translateFigures {
     my $text = shift;
 
     $text =~ s/^\!\[Figure[ | ]([0-9IVX\.\-]*)(.*)\]\((.*)\)(.*)$/::: {custom-style="$styles{'ARTLIST'}"}\n![]($3)$4\n:::\n::: {custom-style="$styles{'FIG_TTL'}"}\n[Figure $1]{custom-style="$styles{'FIG_NUM'}"} $2\n:::/gm; # Abbildungen
-    $text =~ s/^\!\[(.+)\]((.*))$/::: {custom-style="$styles{'ARTLIST'}"}\n![]($2)\n:::\n::: {custom-style="$styles{'FIG_TTL'}"}\n$1\n:::/gm; 
+    $text =~ s/^\!\[(.+)\]\((.*)\)$/::: {custom-style="$styles{'ARTLIST'}"}\n![]($2)\n:::\n::: {custom-style="$styles{'FIG_TTL'}"}\n$1\n:::/gm; 
     $text =~ s/^(\!\[\].*)$/::: {custom-style="$styles{'ARTLIST'}"}\n$1\n:::/gm; # Image without caption
 
     return $text;
