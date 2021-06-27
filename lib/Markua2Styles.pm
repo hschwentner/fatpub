@@ -570,6 +570,7 @@ sub translateLevelOneHeadings {
 
     # Headings Backmatter
     $text =~ s/^# Appendix (.*): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_APP_LET"}\nAppendix $1\n:::\n::: {custom-style="BKRM_APP_TTL"}\n$2\n:::/gm;
+    $text =~ s/^# Appendix: (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_APP_LET"}\nAppendix\n:::\n::: {custom-style="BKRM_APP_TTL"}\n$1\n:::/gm;
     $text =~ s/^# Glossary$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_GLOSSET_TTL"}\nGlossary\n:::/gm;
     $text =~ s/^# Bibliography$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_BIB_TTL"}\nBibliography\n:::/gm;
     $text =~ s/^# Index$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_IDX_TTL"}\nIndex\n:::/gm;
