@@ -563,10 +563,10 @@ sub translateLevelOneHeadings {
     $text =~ s/^# Praise for (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_PP_TTL"}\nPraise for $1\n:::/gm;
     $text =~ s/^# Domain Stories$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\nDomain Stories\n:::/gm;
     $text =~ s/^# Figures$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\nFigures\n:::/gm;
-    $text =~ s/^# Foreword$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_FRWRD_TTL"}\nForeword\n:::/gm;
+    $text =~ s/^# ((Series Editor )?Foreword)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_FRWRD_TTL"}\n$1\n:::/gm;
     $text =~ s/^# Preface$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_PREF_TTL"}\nPreface\n:::/gm;
     $text =~ s/^# Acknowledgments$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_ACK_TTL"}\nAcknowledgments\n:::/gm;
-    $text =~ s/^# About the Authors?$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_ABASET_TTL"}\nAbout the Authors\n:::/gm;
+    $text =~ s/^# (About the Authors?)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_ABASET_TTL"}\n$1\n:::/gm;
 
     # Headings Backmatter
     $text =~ s/^# Appendix (.*): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_APP_LET"}\nAppendix $1\n:::\n::: {custom-style="BKRM_APP_TTL"}\n$2\n:::/gm;
