@@ -202,12 +202,15 @@ sub translateSourceCode {
     $text =~ s/^```.*?\n(.*?)\n```$/::: {custom-style="$styles{'CDT_ONLY'}"}\n$1\n:::/mg;
 
     # Code two-liner
-    $text =~ s/^```.*?\n(.*?)\n(.*?)\n```$/::: {custom-style="$styles{'DT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'DT_LAST'}"}\n$2\n:::/mg;
+    $text =~ s/^```.*?\n(\d+.*?)\n(.*?)\n```$/::: {custom-style="$styles{'DT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'DT_LAST'}"}\n$2\n:::/mg;
+    $text =~ s/^```.*?\n(.*?)\n(.*?)\n```$/::: {custom-style="$styles{'CDT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'CDT_LAST'}"}\n$2\n:::/mg;
 
     # Code multi-liner
     #   start and end
-    $text =~ s/^```.+\n(.*)$/::: {custom-style="$styles{'DT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'DT_MID'}"}/gm;
-    $text =~ s/^(.*)\n(.*)\n```$/:::\n::: {custom-style="$styles{'DT_LAST'}"}\n$1\n$2\n:::\n/gm;  # End of Code-Block
+    $text =~ s/^```.+\n(\d+.*)$/::: {custom-style="$styles{'DT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'DT_MID'}"}/gm;
+    $text =~ s/^(.*)\n(\d+.*)\n```$/:::\n::: {custom-style="$styles{'DT_LAST'}"}\n$1\n$2\n:::\n/gm;  # End of Code-Block
+    $text =~ s/^```.+\n(.*)$/::: {custom-style="$styles{'CDT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'DT_MID'}"}/gm;
+    $text =~ s/^(.*)\n(.*)\n```$/:::\n::: {custom-style="$styles{'CDT_LAST'}"}\n$1\n$2\n:::\n/gm;  # End of Code-Block
 
     # code in text
     $text =~ s/`(..+?)`/\[$1\]{custom-style="$styles{'CIT'}"}/gm;
