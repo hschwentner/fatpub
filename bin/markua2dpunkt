@@ -100,12 +100,12 @@ my %styles = (
 	CDT_FIRST => 'Kommando',
 	CDT_MID => 'Kommando_Folge',
 	CDT_LAST => 'Kommando_Folge',
-	DT_FIRST => 'DT_FIRST',
-	DT_MID => 'DT_MID',
-	DT_LAST => 'DT_LAST',
+	DT_FIRST => 'Kommando',
+	DT_MID => 'Kommando_Folge',
+	DT_LAST => 'Kommando_Folge',
 	DT_NUM => 'DT_NUM',
-	DT_BOLD => 'DT_BOLD',
-	DT_ITAL => 'DT_ITAL',
+	DT_BOLD => 'Fett',
+	DT_ITAL => 'Kursiv',
 
 	# Tips and notes
 	SF1_TTL => 'SF1_TTL',
