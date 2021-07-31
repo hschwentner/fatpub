@@ -186,8 +186,8 @@ sub translateFigures {
 sub translateSourceCode {
     my $text = shift;
 
-    # Escaping and line numbering
-    $text =~ s{(^```.*?^```)}{replaceWithGeneralCodeStyles($1)}msge;
+    # Escaping
+    $text =~ s{(^```.*?^```)}{escapeSpecialCharacters($1)}msge;
 
     # Syntax highlighting
     $text =~ s{(^```gherkin.*?^```)}{replaceWithGherkinCodeStyles($1)}msge;
@@ -198,6 +198,9 @@ sub translateSourceCode {
     # Equations
     $text =~ s/^```\$\n(.*?)\n```$/::: {custom-style="$styles{'EQ_ONLY'}"}\n$1\n:::/mg;
 
+    #   body and line numbering
+    $text =~ s{(^```.*?^```)}{replaceWithCodeBodyStyles($1)}msge;
+ 
     # Code one-liner
     $text =~ s/^```.*?\n(.*?)\n```$/::: {custom-style="$styles{'CDT_ONLY'}"}\n$1\n:::/mg;
 
@@ -207,10 +210,10 @@ sub translateSourceCode {
 
     # Code multi-liner
     #   start and end
-    $text =~ s/^```.+\n(\d+.*)$/::: {custom-style="$styles{'DT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'DT_MID'}"}/gm;
-    $text =~ s/^(.*)\n(\d+.*)\n```$/:::\n::: {custom-style="$styles{'DT_LAST'}"}\n$1\n$2\n:::\n/gm;  # End of Code-Block
-    $text =~ s/^```.+\n(.*)$/::: {custom-style="$styles{'CDT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'DT_MID'}"}/gm;
-    $text =~ s/^(.*)\n(.*)\n```$/:::\n::: {custom-style="$styles{'CDT_LAST'}"}\n$1\n$2\n:::\n/gm;  # End of Code-Block
+    $text =~ s/^```.+\n(\[\d+\]\{custom\-style="$styles{'DT_NUM'}"\}.*)$/::: {custom-style="$styles{'DT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'DT_MID'}"}/gm;
+    $text =~ s/^(.*)\n(\[\d+\]\{custom\-style="$styles{'DT_NUM'}"\}.*)\n```$/$1\n:::\n::: {custom-style="$styles{'DT_LAST'}"}\n$2\n:::\n/gm;  # End of Code-Block
+    $text =~ s/^```.+\n(.*)$/::: {custom-style="$styles{'CDT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'CDT_MID'}"}/gm;
+    $text =~ s/^(.*)\n(.*)\n```$/$1\n:::\n::: {custom-style="$styles{'CDT_LAST'}"}\n$2\n:::\n/gm;  # End of Code-Block
 
     # code in text
     $text =~ s/`(..+?)`/\[$1\]{custom-style="$styles{'CIT'}"}/gm;
@@ -218,22 +221,35 @@ sub translateSourceCode {
     return $text;
 }
 
-sub replaceWithGeneralCodeStyles {
+sub escapeSpecialCharacters {
     my $text = shift;
 
     # Escape Markdown special characters
     $text =~ s/\*/&ast;/gm;   # Escape asterisk
     $text =~ s/\</&lt;/gm;    # Escape opening angle bracket
     $text =~ s/\>/&gt;/gm;    # Escape closing angle bracket
+
+    # Escape spaces
+    $text =~ s/ /&nbsp;/gm;
     
     # Escape Pandoc's smart typography
     $text =~ s/\"/&quot;/gm;  # Escape double quotation marks
     $text =~ s/\'/&apos;/gm;  # Escape apostroph and single quotation marks
     $text =~ s/\.\.\./&#46;&#46;&#46;/gm;  # Escape ellipsis
 
+    return $text;
+}
+
+sub replaceWithCodeBodyStyles {
+    my $text = shift;
+
     #  code body
-    $text =~ s/^    (.*)$/$1\n/gm;                          # Code block itself starts with 4 non-breaking (!!!) spaces
-    $text =~ s/^(\d+)    (.*)$/\[$1\]{custom-style="$styles{'DT_NUM'}"} $2\n/gm;    # Numbered Code 
+    $text =~ s/^    (.*)$/$1/gm;                          # Code block itself may start with 4 non-breaking (!!!) spaces
+    $text =~ s/^(\d+)    (.*)$/\[$1\]{custom-style="$styles{'DT_NUM'}"} $2/gm;    # Numbered Code 
+    $text =~ s/^(\d+)(.*)$/\[$1\]{custom-style="$styles{'DT_NUM'}"} $2/gm;    # Numbered Code 
+    
+    # Keep line breaks
+    $text =~ s/^([^`].*)$/$1  /gm;
 
     return $text;
 }
@@ -242,7 +258,7 @@ sub replaceWithGherkinCodeStyles {
     my $text = shift;
 
     # keywords
-    $text =~ s/(Scenario|Given|And|When|Then)(\s|:)/\[$1\]{custom-style="$styles{'DT_BOLD'}"}$2/gm;
+    $text =~ s/(Scenario|Given|And|When|Then)(\s|:|&nbsp;)/\[$1\]{custom-style="$styles{'DT_BOLD'}"}$2/gm;
 
     return $text;
 }
@@ -251,7 +267,7 @@ sub replaceWithJavaCodeStyles {
     my $text = shift;
 
     # keywords
-    $text =~ s/(import|static|public|class|void|var|new|enum|int|float|assert|boolean) /\[$1\]{custom-style="$styles{'DT_BOLD'}"} /gm;
+    $text =~ s/(import|static|public|class|void|var|new|enum|int|float|assert|boolean)&nbsp;/\[$1\]{custom-style="$styles{'DT_BOLD'}"}&nbsp;/gm;
     
     # comments
     $text =~ s/(\/\/.*)$/\[$1\]{custom-style="$styles{'DT_ITAL'}"}/gm;
@@ -264,7 +280,7 @@ sub replaceWithFSharpCodeStyles {
     my $text = shift;
 
     # keywords
-    $text =~ s/(type|of|let|fun|open) /\[$1\]{custom-style="$styles{'DT_BOLD'}"} /gm;
+    $text =~ s/(type|of|let|fun|open)&nbsp;/\[$1\]{custom-style="$styles{'DT_BOLD'}"}&nbsp;/gm;
 
     # comments
     $text =~ s/(\(&ast;.*?&ast;\))/\[$1\]{custom-style="$styles{'DT_ITAL'}"}/gm;
