@@ -169,6 +169,10 @@ sub translateLists {
     $text =~ s/(^1.) (.*)$/::: {custom-style="$styles{'NL_FIRST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;
     $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      
     $text =~ s/(^[2-9].) (.*)$/::: {custom-style="$styles{'NL_MID'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;      
+    # Numbered, level 2
+    $text =~ s/^    (1.) (.*)$/::: {custom-style="$styles{'NL_NL_FIRST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;
+    $text =~ s/\n    (\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      
+    $text =~ s/^    ([2-9].) (.*)$/::: {custom-style="$styles{'NL_NL_MID'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;      
 
     return $text;
 }

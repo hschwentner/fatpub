@@ -68,7 +68,9 @@ my %styles = (
 	NL_MID => 'Liste_Num_Folge',
 	NL_LAST => 'Liste_Num_Folge',
 	NL_NUM => 'NL_NUM',
-	# TODO: 'Liste_a_Anfang' und 'Liste_a_Folge'
+	NL_NL_FIRST => 'Liste_a_Anfang',
+	NL_NL_MID => 'Liste_a_Folge',
+	NL_NL_LAST => 'Liste_a_Folge',
 
 	# Images and figures
 	ARTLIST => 'Haupttext_Folge',

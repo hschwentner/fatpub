@@ -67,6 +67,9 @@ my %styles = (
 	NL_MID => 'NL_MID',
 	NL_LAST => 'NL_LAST',
 	NL_NUM => 'NL_NUM',
+	NL_NL_FIRST => 'NL_NL_FIRST',
+	NL_NL_MID => 'NL_NL_MID',
+	NL_NL_LAST => 'NL_NL_LAST',
 
 	# Images and figures
 	ARTLIST => 'artlist',
