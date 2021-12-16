@@ -1,0 +1,6 @@
+# action.yml
+name: 'GitHub Action for Markua2AW'
+description: 'Convert Markua to Addison-Wesley Markdown ready for Pandoc'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
