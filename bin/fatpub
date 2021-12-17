@@ -8,7 +8,7 @@
 
 if [[ $# != 3 ]]; then
     echo "Please specify three parameters with a publisher template, an input \
-        file, and an output file. Possible publisher templates: ptg_awph02 dpunkt_einspaltig."
+        file, and an output file. Possible publisher templates: ptg_awph02 dpunkt_einspaltig dpunkt_2019."
     exit 1
 fi
 
@@ -22,7 +22,9 @@ case "${template}" in
     ptg_awph02)
         ${bindir}/markua2aw ${inputfile} > ${outputfile} ;;
     dpunkt_einspaltig)
-        ${bindir}/markua2dpunkt ${inputfile} > ${outputfile} ;;
+        ${bindir}/markua2dpunkt_einspaltig ${inputfile} > ${outputfile} ;;
+    dpunkt_2019)
+        ${bindir}/markua2dpunkt_2019 ${inputfile} > ${outputfile} ;;
     *)
         echo "Invalid publisher template: ${template}"
         exit -1 ;;
