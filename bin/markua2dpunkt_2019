@@ -1,0 +1,145 @@
+#!/usr/bin/perl
+
+# dpunkt2dpunkt_2019 - A converter from Markua to dpunkt verlag's DOCX styling
+# Copyright (C) 2021 Henning Schwentner
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    
+use strict;
+use warnings;
+
+use utf8;                # UTF8 in sourcecode
+use open qw/:std :utf8/; # UTF8 in input and output
+
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use Markua2Styles;
+
+# Define Styles to be used
+my %styles = (
+
+	# Headings
+	PART_NUM => 'PART_NUM',
+	PART_TTL => 'PART_TTL',
+	CHAP_NUM => 'CHAP_NUM',
+	CHAP_TTL => 'Überschrift 1',
+	H1 => 'Überschrift 2',
+	H2 => 'Überschrift 3',
+	H3 => 'Überschrift 4',
+	#H4 => 'Überschrift 5',   #Todo!
+
+	# Body text
+	HEADFIRST => 'Standard',
+	CHAP_BM => 'Standard-Folge',
+
+	# Emphasizement
+	ITAL => '_kursiv',
+	BOLD => '_fett',
+	BOLD_ITAL => '_fett-kursiv',
+	SCAP => 'SCAP',
+	SCAP_ITAL => 'SCAP_ITAL',
+	SCAP_BOLD => 'SCAP_BOLD',
+	SCAP_BOLD_ITAL => 'SCAP_BOLD_ITAL',
+
+	# Lists
+	BL_FIRST => 'Liste-Square',
+	BL_MID => 'Liste-Square',
+	BL_LAST => 'Liste-Square',
+	BL_BL_FIRST => 'Liste-Punkt',
+	BL_BL_MID => 'Liste-Punkt',
+	BL_BL_LAST => 'Liste-Punkt',
+	BL_BL_DING => 'BL_BL_DING',
+	BL_BL_BL_FIRST => 'Liste-Strich',
+	BL_BL_BL_MID => 'Liste-Strich',
+	BL_BL_BL_LAST => 'Liste-Strich',
+	BL_BL_BL_DING => 'BL_BL_BL_DING',
+	NL_FIRST => 'Liste-Nummer',
+	NL_MID => 'Liste-Nummer',
+	NL_LAST => 'Liste-Nummer',
+	NL_NUM => 'NL_NUM',
+	NL_NL_FIRST => 'Liste-Abc',
+	NL_NL_MID => 'Liste-Abc',
+	NL_NL_LAST => 'Liste-Abc',
+	#TODO: Liste-Folgeabsatz
+
+	# Images and figures
+	ARTLIST => 'Standard-Folge',
+	FIG_TTL => 'Beschriftung',
+	FIG_NUM => 'FIG_NUM',
+
+	# Footnotes
+	FN => 'Fußnote',                 # Todo...
+
+	# Quotes and extracts
+	CF_EPG_FIRST => 'Zitat',
+	CF_EPG_ATTR_AU_NA => 'Zitat_Autor',
+	EPG => 'Zitat',
+	EPG_ATTR_AU_NA => 'Zitat_Autor',
+	EXT_ONLY => 'Zitat',
+
+	# Dialogue
+	DLG_FIRST => 'DLG_FIRST',
+	DLG_MID => 'DLG_MID',
+	DLG_LAST => 'DLG_LAST',
+	DLG_SPKR => 'DLG_SPKR',
+
+	# Equations
+	EQ_ONLY => 'EQ_ONLY',
+
+	# Code
+	CIT => '_Code',
+	CDT_ONLY => 'Listing',
+	CDT_FIRST => 'Listing',
+	CDT_MID => 'Listing_Folge',
+	CDT_LAST => 'Listing_Folge',
+	DT_FIRST => 'Listing',
+	DT_MID => 'Listing_Folge',
+	DT_LAST => 'Listing_Folge',
+	DT_NUM => 'DT_NUM',
+	DT_BOLD => '_fett',
+	DT_ITAL => '_kursiv',
+
+	# Tips and notes
+	SF1_TTL => 'SF1_TTL',
+	SF1_FIRST => 'SF1_FIRST',
+	SF2_TTL => 'SF2_TTL',
+	SF2_FIRST => 'SF2_FIRST',
+
+# TODO: Asides and boxes
+
+	# Praise
+	BKFM_PP => 'BKFM_PP',
+	BKFM_PP_AU_NA => 'BKFM_PP_AU_NA',
+
+	# Glossary
+	BKRM_GLOS_DEF => 'BKRM_GLOS_DEF',
+	BKRM_GLOS_KT => 'BKRM_GLOS_KT',
+	BKRM_GLOS_KT_SCAP => 'BKRM_GLOS_KT_SCAP',
+
+	# Bibliograpy
+	BKRM_BIB1 => 'BKRM_BIB1',
+	BKRM_BIB2 => 'BKRM_BIB2',
+
+# TODO: replacement of styles for Part, Acknowledgements, About the Authors, etc.
+
+);
+
+
+
+my $text;
+{
+	local $/;               # Slurp the whole file
+	$text = <>;             # Use file if specified or stdin otherwise
+}
+print Markua2Styles($text, %styles);
