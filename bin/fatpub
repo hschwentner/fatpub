@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+# A Pandoc preprocessor that enables authors to writing books in Markdown/Markua 
+# although their old-fashioned publishers expect DOC(X) files.
+#
+# Usage: fatpub 'publisher template' 'input file' 'output file'
+# Example: fatpub ptg_awph02 leanpub.md fatpub.md
+
+if [[ $# != 3 ]]; then
+    echo "Please specify three parameters with a publisher template, an input \
+        file, and an output file. Possible publisher templates: ptg_awph02 dpunkt."
+    exit 1
+fi
+
+template="$1"
+inputfile="$2"
+outputfile="$3"
+
+bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+case "${template}" in
+    ptg_awph02)
+        ${bindir}/markua2aw ${inputfile} > ${outputfile} ;;
+    dpunkt)
+        ${bindir}/markua2dpunkt ${inputfile} > ${outputfile} ;;
+    *)
+        echo "Invalid publisher template: ${template}"
+        exit -1 ;;
+esac

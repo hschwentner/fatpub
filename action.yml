@@ -1,6 +1,19 @@
 # action.yml
-name: 'GitHub Action for Markua2AW'
-description: 'Convert Markua to Addison-Wesley Markdown ready for Pandoc'
+name: 'GitHub Action for Fatpub'
+description: 'Convert Markua to old-fashioned publisher Markdown ready for Pandoc'
+inputs:
+  publisher:
+    description: 'The format with the styles used by the publisher'
+    required: true
+    #default: 'ptg_awph02'
+  in:
+    required: true
+  out: 
+     required: true
 runs:
   using: 'docker'
   image: 'Dockerfile'
+  args: >
+    ${{ inputs.publisher }}
+    ${{ inputs.in }}
+    ${{ inputs.out }}
