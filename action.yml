@@ -13,7 +13,7 @@ inputs:
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args: >
-    ${{ inputs.publisher }}
-    ${{ inputs.in }}
-    ${{ inputs.out }}
+  args:
+    - ${{ inputs.publisher }}
+    - ${{ inputs.in }}
+    - ${{ inputs.out }}
