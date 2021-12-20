@@ -184,14 +184,25 @@ sub translateLists {
         $text =~ s/\n    - (.*?)(\n+(?!    -))/\n::: {custom-style="$styles{'BL_BL_BL_LAST'}"}\n\[$settings{'bullet_level_3'}\]{custom-style="$styles{'BL_BL_BL_DING'}"}\t$1\n:::$2/gm;
         $text =~ s/^    - (.*)$/::: {custom-style="$styles{'BL_BL_BL_MID'}"}\n\[$settings{'bullet_level_3'}\]{custom-style="$styles{'BL_BL_BL_DING'}"}	$1\n:::/gm;   
     }
-    # Numbered                            
-    $text =~ s/(^1.) (.*)$/::: {custom-style="$styles{'NL_FIRST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;
-    $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      
-    $text =~ s/(^[2-9].) (.*)$/::: {custom-style="$styles{'NL_MID'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;      
-    # Numbered, level 2
-    $text =~ s/^    (1.) (.*)$/::: {custom-style="$styles{'NL_NL_FIRST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;
-    $text =~ s/\n    (\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      
-    $text =~ s/^    ([2-9].) (.*)$/::: {custom-style="$styles{'NL_NL_MID'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;      
+    unless ($styles{'NL_NUM'}) {
+        # Numbered                            
+        $text =~ s/(^1\.) (.*)$/::: {custom-style="$styles{'NL_FIRST'}"}\n$2\n:::/gm;
+        $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_LAST'}"}\n$2\n:::$3/gm;      
+        $text =~ s/(^[2-9]\.) (.*)$/::: {custom-style="$styles{'NL_MID'}"}\n$2\n:::/gm;      
+        # Numbered, level 2
+        $text =~ s/^    (1\.) (.*)$/::: {custom-style="$styles{'NL_NL_FIRST'}"}\n$2\n:::/gm;
+        $text =~ s/\n    (\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_NL_LAST'}"}\n$2\n:::$3/gm;      
+        $text =~ s/^    ([2-9]\.) (.*)$/::: {custom-style="$styles{'NL_NL_MID'}"}\n$2\n:::/gm;      
+    } else  {
+        # Numbered                            
+        $text =~ s/(^1\.) (.*)$/::: {custom-style="$styles{'NL_FIRST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;
+        $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      
+        $text =~ s/(^[2-9]\.) (.*)$/::: {custom-style="$styles{'NL_MID'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;      
+        # Numbered, level 2
+        $text =~ s/^    (1\.) (.*)$/::: {custom-style="$styles{'NL_NL_FIRST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;
+        $text =~ s/\n    (\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      
+        $text =~ s/^    ([2-9]\.) (.*)$/::: {custom-style="$styles{'NL_NL_MID'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;      
+    }
 
     return $text;
 }
