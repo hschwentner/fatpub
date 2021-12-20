@@ -48,6 +48,7 @@ my %styles = (
 
 	# Body text
 	HEADFIRST => 'Haupttext_Anfang',
+	paragraph_first_after_list => 'Haupttext_Anfang',
 	CHAP_BM => 'Haupttext_Folge',
 
 	# Emphasizement

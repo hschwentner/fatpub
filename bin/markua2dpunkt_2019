@@ -48,6 +48,7 @@ my %styles = (
 
 	# Body text
 	HEADFIRST => 'Standard',
+	paragraph_first_after_list => 'Standard',
 	CHAP_BM => 'Standard-Folge',
 
 	# Emphasizement
@@ -66,11 +67,11 @@ my %styles = (
 	BL_BL_FIRST => 'Liste-Punkt',
 	BL_BL_MID => 'Liste-Punkt',
 	BL_BL_LAST => 'Liste-Punkt',
-	BL_BL_DING => 'Standard',
+	BL_BL_DING => '',
 	BL_BL_BL_FIRST => 'Liste-Strich',
 	BL_BL_BL_MID => 'Liste-Strich',
 	BL_BL_BL_LAST => 'Liste-Strich',
-	BL_BL_BL_DING => 'Standard',
+	BL_BL_BL_DING => '',
 	NL_FIRST => 'Liste-Nummer',
 	NL_MID => 'Liste-Nummer',
 	NL_LAST => 'Liste-Nummer',
