@@ -95,7 +95,7 @@ sub replaceWithStylesInPraise {
 
     # Praise entries
     $text =~ s/^\*(—.*)\*$/::: {custom-style="$styles{'BKFM_PP_AU_NA'}"}\n$1\n:::/gm;
-    $text =~ s/^([“A-Za-z\[\*].*)$/::: {custom-style="$styles{'BKFM_PP'}"}\n$1\n:::/gm;
+    $text =~ s/^([“A-ZÄÖÜa-z\[\*].*)$/::: {custom-style="$styles{'BKFM_PP'}"}\n$1\n:::/gm;
 
     return $text;
 }
@@ -125,16 +125,16 @@ sub translateBodyText {
     $text =~ s/^I> (.*)$/::: {custom-style="$styles{'SF1_TTL'}"}\nNote\n:::\n::: {custom-style="$styles{'SF1_FIRST'}"}\n$1\n:::/gm;
     $text =~ s/^T> (.*)$/::: {custom-style="$styles{'SF2_TTL'}"}\nTip\n:::\n::: {custom-style="$styles{'SF2_FIRST'}"}\n$1\n:::/gm;
     # Paragraphs, first after heading
-    $text =~ s/((?:^|\n)#.*(?:\n+>.*)?(?:\n+\!.*)?)\n\n+([A-Za-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'HEADFIRST'}"}\n$2\n:::\n\n/gm; # First paragraph after heading with optional epigraph and optional opening picture
-    $text =~ s/((?:^|\n)#.*(?:\n+\!.*)?)\n\n+([A-Za-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'HEADFIRST'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
+    $text =~ s/((?:^|\n)#.*(?:\n+>.*)?(?:\n+\!.*)?)\n\n+([A-ZÄÖÜa-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'HEADFIRST'}"}\n$2\n:::\n\n/gm; # First paragraph after heading with optional epigraph and optional opening picture
+    $text =~ s/((?:^|\n)#.*(?:\n+\!.*)?)\n\n+([A-ZÄÖÜa-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'HEADFIRST'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
     # Paragraphs, first after list
-    $text =~ s/(^ *- .*)\n\n+([A-Za-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # First paragraph after bulleted list
-    $text =~ s/(^ *- .*)\n\n+([A-Za-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
-    $text =~ s/(^ *\d+\. .*)\n\n+([A-Za-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # First paragraph after numbered list
-    $text =~ s/(^ *\d+\. .*)\n\n+([A-Za-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
+    $text =~ s/(^ *- .*)\n\n+([A-ZÄÖÜa-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # First paragraph after bulleted list
+    $text =~ s/(^ *- .*)\n\n+([A-ZÄÖÜa-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
+    $text =~ s/(^ *\d+\. .*)\n\n+([A-ZÄÖÜa-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # First paragraph after numbered list
+    $text =~ s/(^ *\d+\. .*)\n\n+([A-ZÄÖÜa-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
     # Paragraphs, normal
-    $text =~ s/\n\n([A-Za-z“„»\[\*].*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # einmal für ungerade Absatznummer
-    $text =~ s/\n\n([A-Za-z“„»\[\*].*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # Doppelt für Gerade Absatznummer
+    $text =~ s/\n\n([A-ZÄÖÜa-z“„»\[\*].*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # einmal für ungerade Absatznummer
+    $text =~ s/\n\n([A-ZÄÖÜa-z“„»\[\*].*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # Doppelt für Gerade Absatznummer
     # Epigraphs/Block Quotations
     $text =~ s/(^# .*\n+)> (.*)(—.*)$/$1::: {custom-style="$styles{'CF_EPG_FIRST'}"}\n$2\n:::\n::: {custom-style="$styles{'CF_EPG_ATTR_AU_NA'}"}\n$3\n:::\n/gm; # Opening epigraph
     $text =~ s/(^##+ .*\n+)> (.*)(—.*)$/$1::: {custom-style="$styles{'EPG'}"}\n$2\n:::\n::: {custom-style="$styles{'EPG_ATTR_AU_NA'}"}\n$3\n:::/gm;  # Epigraph with author
