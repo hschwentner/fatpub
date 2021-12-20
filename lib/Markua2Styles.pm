@@ -26,13 +26,15 @@ our $VERSION = '1.00';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
-#print Markua2AW($text, %styles);
+#print Markua2AW($text, %settings, %styles);
 
+our %settings;
 our %styles;
 
 sub Markua2Styles {
-    my ($text, %localstyles) = @_;
-    %styles = %localstyles;
+    my ($text, $ref_to_settings, $ref_to_styles) = @_;
+    %settings = %$ref_to_settings;
+    %styles = %$ref_to_styles;
 
     $text = cleanup($text);
 
@@ -151,20 +153,31 @@ sub translateSubHeadings {
 }
 
 sub translateLists {
-    my $text = shift;
-
+    my ($text) = @_;
+    
     # Bulleted, level 1
     $text =~ s/\n\n- (.*)\n/\n\n::: {custom-style="$styles{'BL_FIRST'}"}\n$1\n:::\n/gm;
     $text =~ s/\n- (.*)\n\n/\n::: {custom-style="$styles{'BL_LAST'}"}\n$1\n:::\n\n/gm;
     $text =~ s/^- (.*)$/::: {custom-style="$styles{'BL_MID'}"}\n$1\n:::/gm;            
-    # Bulleted, level 2
-    $text =~ s/(\n(?!  -).*?\n+)  - (.*?)\n/$1::: {custom-style="$styles{'BL_BL_FIRST'}"}\n\[○\]{custom-style="$styles{'BL_BL_DING'}"}\t$2\n:::\n/gm;
-    $text =~ s/\n  - (.*?)(\n+(?!  -))/\n::: {custom-style="$styles{'BL_BL_LAST'}"}\n\[○\]{custom-style="$styles{'BL_BL_DING'}"}\t$1\n:::$2/gm;
-    $text =~ s/^  - (.*)$/::: {custom-style="$styles{'BL_BL_MID'}"}\n\[○\]{custom-style="$styles{'BL_BL_DING'}"}	$1\n:::/gm;                               
-    # Bulleted, level 3
-    $text =~ s/(\n(?!    -).*?\n+)    - (.*?)\n/$1::: {custom-style="$styles{'BL_BL_BL_FIRST'}"}\n\[•\]{custom-style="$styles{'BL_BL_BL_DING'}"}\t$2\n:::\n/gm;
-    $text =~ s/\n    - (.*?)(\n+(?!    -))/\n::: {custom-style="$styles{'BL_BL_BL_LAST'}"}\n\[•\]{custom-style="$styles{'BL_BL_BL_DING'}"}\t$1\n:::$2/gm;
-    $text =~ s/^    - (.*)$/::: {custom-style="$styles{'BL_BL_BL_MID'}"}\n\[•\]{custom-style="$styles{'BL_BL_BL_DING'}"}	$1\n:::/gm;   
+    unless ($settings{'bullets_have_their_own_style'}) {
+        # Bulleted, level 2
+        $text =~ s/(\n(?!  -).*?\n+)  - (.*?)\n/$1::: {custom-style="$styles{'BL_BL_FIRST'}"}\n$2\n:::\n/gm;
+        $text =~ s/\n  - (.*?)(\n+(?!  -))/\n::: {custom-style="$styles{'BL_BL_LAST'}"}\n$1\n:::$2/gm;
+        $text =~ s/^  - (.*)$/::: {custom-style="$styles{'BL_BL_MID'}"}\n$1\n:::/gm;                               
+        # Bulleted, level 3
+        $text =~ s/(\n(?!    -).*?\n+)    - (.*?)\n/$1::: {custom-style="$styles{'BL_BL_BL_FIRST'}"}\n$2\n:::\n/gm;
+        $text =~ s/\n    - (.*?)(\n+(?!    -))/\n::: {custom-style="$styles{'BL_BL_BL_LAST'}"}\n$1\n:::$2/gm;
+        $text =~ s/^    - (.*)$/::: {custom-style="$styles{'BL_BL_BL_MID'}"}\n$1\n:::/gm;   
+    } else {
+        # Bulleted, level 2
+        $text =~ s/(\n(?!  -).*?\n+)  - (.*?)\n/$1::: {custom-style="$styles{'BL_BL_FIRST'}"}\n\[$settings{'bullet_level_2'}\]{custom-style="$styles{'BL_BL_DING'}"}\t$2\n:::\n/gm;
+        $text =~ s/\n  - (.*?)(\n+(?!  -))/\n::: {custom-style="$styles{'BL_BL_LAST'}"}\n\[$settings{'bullet_level_2'}\]{custom-style="$styles{'BL_BL_DING'}"}\t$1\n:::$2/gm;
+        $text =~ s/^  - (.*)$/::: {custom-style="$styles{'BL_BL_MID'}"}\n\[$settings{'bullet_level_2'}\]{custom-style="$styles{'BL_BL_DING'}"}	$1\n:::/gm;                               
+        # Bulleted, level 3
+        $text =~ s/(\n(?!    -).*?\n+)    - (.*?)\n/$1::: {custom-style="$styles{'BL_BL_BL_FIRST'}"}\n\[$settings{'bullet_level_3'}\]{custom-style="$styles{'BL_BL_BL_DING'}"}\t$2\n:::\n/gm;
+        $text =~ s/\n    - (.*?)(\n+(?!    -))/\n::: {custom-style="$styles{'BL_BL_BL_LAST'}"}\n\[$settings{'bullet_level_3'}\]{custom-style="$styles{'BL_BL_BL_DING'}"}\t$1\n:::$2/gm;
+        $text =~ s/^    - (.*)$/::: {custom-style="$styles{'BL_BL_BL_MID'}"}\n\[$settings{'bullet_level_3'}\]{custom-style="$styles{'BL_BL_BL_DING'}"}	$1\n:::/gm;   
+    }
     # Numbered                            
     $text =~ s/(^1.) (.*)$/::: {custom-style="$styles{'NL_FIRST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;
     $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      

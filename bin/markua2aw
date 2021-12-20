@@ -26,6 +26,13 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Markua2Styles;
 
+my %settings = (
+	# Lists
+	bullets_have_their_own_style => 1, 	# 1 == true
+	bullet_level_2 => '○',              # for BL_BL_DING
+	bullet_level_3 => '•',    			# for BL_BL_BL_DING
+);
+
 # Define Styles to be used
 my %styles = (
 
@@ -140,4 +147,4 @@ my $text;
 	local $/;               # Slurp the whole file
 	$text = <>;             # Use file if specified or stdin otherwise
 }
-print Markua2Styles($text, %styles);
+print Markua2Styles($text, \%settings, \%styles);
