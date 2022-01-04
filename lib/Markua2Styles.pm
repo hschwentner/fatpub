@@ -38,6 +38,8 @@ sub Markua2Styles {
 
     $text = cleanup($text);
 
+    $text = cleanupGermanAbbreviations($text);
+
     $text = translateFrontmatter($text);
     $text = translateBackmatter($text);
 
@@ -77,6 +79,16 @@ sub cleanup {
     $text =~ s/^\{width(.*)$//gm;
     $text =~ s/^\{id(.*)$//gm;
     $text =~ s/\{i:.*?\}//gm;          # Ignore index entries
+
+    return $text;
+}
+
+sub cleanupGermanAbbreviations {
+    my $text = shift;
+
+    $text =~ s/d.[  ]?h./d.&#x202f;h./gm;
+    $text =~ s/z.[  ]?B./z.&#x202f;B./gm;
+    $text =~ s/u.[  ]?a./u.&#x202f;a./gm;
 
     return $text;
 }
