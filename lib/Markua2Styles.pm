@@ -86,9 +86,9 @@ sub cleanup {
 sub cleanupGermanAbbreviations {
     my $text = shift;
 
-    $text =~ s/d.[  ]?h./d.&#x202f;h./gm;
-    $text =~ s/z.[  ]?B./z.&#x202f;B./gm;
-    $text =~ s/u.[  ]?a./u.&#x202f;a./gm;
+    $text =~ s/d\.[  ]?h\./d.&#x202f;h./gm;
+    $text =~ s/z\.[  ]?B\./z.&#x202f;B./gm;
+    $text =~ s/u\.[  ]?a\./u.&#x202f;a./gm;
 
     return $text;
 }
