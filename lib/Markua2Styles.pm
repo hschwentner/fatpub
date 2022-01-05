@@ -91,6 +91,7 @@ sub cleanupGermanAbbreviations {
     $text =~ s/d\.[  ]?h\./d.&#x202f;h./gm;
     $text =~ s/z\.[  ]?B\./z.&#x202f;B./gm;
     $text =~ s/u\.[  ]?a\./u.&#x202f;a./gm;
+    $text =~ s/u\.[  ]?ä\./u.&#x202f;ä./gm;
 
     return $text;
 }
@@ -234,6 +235,7 @@ sub translateFigures {
     $text =~ s/^\!\[Figure[ | ]([0-9IVX\.\-]*)(.*)\]\((.*)\)(.*)$/::: {custom-style="$styles{'ARTLIST'}"}\n![]($3)$4\n:::\n::: {custom-style="$styles{'FIG_TTL'}"}\n[Figure $1]{custom-style="$styles{'FIG_NUM'}"} $2\n:::/gm; # Abbildungen
     $text =~ s/^(\!\[\].*)$/::: {custom-style="$styles{'ARTLIST'}"}\n$1\n:::/gm; # Image without caption
     $text =~ s/^\!\[(.+)\]\((.*)\)$/::: {custom-style="$styles{'ARTLIST'}"}\n![]($2)\n:::\n::: {custom-style="$styles{'FIG_TTL'}"}\n$1\n:::/gm; 
+#    $text =~ s/^\!\[(.+)\]\((.*)\)\{(.*)\}$/::: {custom-style="$styles{'ARTLIST'}"}\n![]($2){$3}\n:::\n::: {custom-style="$styles{'FIG_TTL'}"}\n$1\n:::/gm; 
 
     return $text;
 }
