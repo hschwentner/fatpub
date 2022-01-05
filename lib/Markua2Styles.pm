@@ -92,6 +92,7 @@ sub cleanupGermanAbbreviations {
     $text =~ s/z\.[  ]?B\./z.&#x202f;B./gm;
     $text =~ s/u\.[  ]?a\./u.&#x202f;a./gm;
     $text =~ s/u\.[  ]?ä\./u.&#x202f;ä./gm;
+    $text =~ s/o\.[  ]?ä\./o.&#x202f;ä./gm;
 
     return $text;
 }
