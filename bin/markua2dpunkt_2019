@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # dpunkt2dpunkt_2019 - A converter from Markua to dpunkt verlag's DOCX styling
 # Copyright (C) 2021 Henning Schwentner
@@ -16,8 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
     
-use strict;
+use v5.34;
 use warnings;
+use autodie;
 
 use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output

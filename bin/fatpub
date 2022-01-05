@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A Pandoc preprocessor that enables authors to writing books in Markdown/Markua 
 # although their old-fashioned publishers expect DOC(X) files.
