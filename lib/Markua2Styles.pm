@@ -15,14 +15,15 @@
 
 package Markua2Styles;
 
-use strict;
+use v5.34;
 use warnings;
+use autodie;
 
 use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.00';
+our $VERSION = '1.3';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
@@ -75,6 +76,7 @@ sub cleanup {
     $text =~ s/^%%:::(.*)$/:::$1/gm;   # Für Leanpub auskommentiert, für DOCX einkommentieren
     $text =~ s/^%%(.*?)\n//gm;         # Kommentare starten mit ^%%
     $text =~ s/^ *$//gm;               # Lines with only whitespace                                               # Kommentare starten mit ^%%
+    $text =~ s/\n\n+\n/\n\n/gm;        # Not more than 2 newlines
     $text =~ s/^\{sample(.*)$//gm;     # Leanpub-Direktiven wie {sample} ausblenden
     $text =~ s/^\{width(.*)$//gm;
     $text =~ s/^\{id(.*)$//gm;
@@ -144,6 +146,9 @@ sub translateBodyText {
     $text =~ s/(^ *- .*)\n\n+([A-ZÄÖÜa-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
     $text =~ s/(^ *\d+\. .*)\n\n+([A-ZÄÖÜa-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # First paragraph after numbered list
     $text =~ s/(^ *\d+\. .*)\n\n+([A-ZÄÖÜa-z“„»\[\*].*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
+    # Paragraphs, first after figure
+    # Paragraphs, first after quote
+    # Paragraphs, first after table
     # Paragraphs, normal
     $text =~ s/\n\n([A-ZÄÖÜa-z“„»\[\*].*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # einmal für ungerade Absatznummer
     $text =~ s/\n\n([A-ZÄÖÜa-z“„»\[\*].*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # Doppelt für Gerade Absatznummer
@@ -151,6 +156,8 @@ sub translateBodyText {
     $text =~ s/(^# .*\n+)> (.*)(—.*)$/$1::: {custom-style="$styles{'CF_EPG_FIRST'}"}\n$2\n:::\n::: {custom-style="$styles{'CF_EPG_ATTR_AU_NA'}"}\n$3\n:::\n/gm; # Opening epigraph
     $text =~ s/(^##+ .*\n+)> (.*)(—.*)$/$1::: {custom-style="$styles{'EPG'}"}\n$2\n:::\n::: {custom-style="$styles{'EPG_ATTR_AU_NA'}"}\n$3\n:::/gm;  # Epigraph with author
     $text =~ s/(^##+ .*\n+)> (.*)$/$1::: {custom-style="$styles{'EPG'}"}\n$2\n:::/gm;  # Epigraph
+    $text =~ s/^> ## (.*)$/::: {custom-style="$styles{'EXT_ONLY_H1'}"}\n$1\n:::/gm;  # Extract head
+    $text =~ s/^>$//gm;  # Empty extract lines
     $text =~ s/^> (.*)$/::: {custom-style="$styles{'EXT_ONLY'}"}\n$1\n:::/gm;  # Extract
 
 # TODO:
