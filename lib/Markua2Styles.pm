@@ -129,7 +129,7 @@ sub translateBackmatter {
     return $text;
 }
 
-our $PARAGRAPH_START = '[\[\*]?[A-ZÄÖÜa-z“„»]';
+our $PARAGRAPH_START = '[\[\*]?[A-ZÄÖÜa-z“„»@]';
 
 # Has to be called before translateSubHeadings() to determine first paragraphs
 sub translateBodyText {
