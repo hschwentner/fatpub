@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
@@ -66,6 +66,8 @@ sub Markua2Styles {
 
     # Main headings as last step
     $text = translateLevelOneHeadings($text);
+
+    $text = removeMarkupForStandardStyles($text);
 
     return $text;
 }
@@ -659,6 +661,20 @@ sub translateLevelOneHeadings {
     
     # Delete starting empty page
     $text =~ s/^\n*\{\{newpage\}\}\n*//;
+
+    return $text;
+}
+
+sub removeMarkupForStandardStyles {
+    my $text = shift;
+
+# TODO: Add English variants
+
+    $text =~ s{^::: \{custom-style="Standard"\}\n(.*?)\n:::}{$1}msg;
+    $text =~ s{^::: \{custom-style="Überschrift 1"\}\n(.*?)\n:::}{# $1}msg;
+    $text =~ s{^::: \{custom-style="Überschrift 2"\}\n(.*?)\n:::}{## $1}msg;
+    $text =~ s{^::: \{custom-style="Überschrift 3"\}\n(.*?)\n:::}{### $1}msg;
+    $text =~ s{^::: \{custom-style="Überschrift 4"\}\n(.*?)\n:::}{#### $1}msg;
 
     return $text;
 }

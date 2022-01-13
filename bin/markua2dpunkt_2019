@@ -147,24 +147,10 @@ my %styles = (
 );
 
 
-sub removeMarkupForStandardStyles {
-    my $text = shift;
-
-    $text =~ s{^::: \{custom-style="Standard"\}\n(.*?)\n:::}{$1}msg;
-    $text =~ s{^::: \{custom-style="Überschrift 1"\}\n(.*?)\n:::}{# $1}msg;
-    $text =~ s{^::: \{custom-style="Überschrift 2"\}\n(.*?)\n:::}{## $1}msg;
-    $text =~ s{^::: \{custom-style="Überschrift 3"\}\n(.*?)\n:::}{### $1}msg;
-    $text =~ s{^::: \{custom-style="Überschrift 4"\}\n(.*?)\n:::}{#### $1}msg;
-
-    return $text;
-}
-
 
 my $text;
 {
 	local $/;               # Slurp the whole file
 	$text = <>;             # Use file if specified or stdin otherwise
 }
-$text = Markua2Styles($text, \%settings, \%styles);
-$text = removeMarkupForStandardStyles($text);
-print $text;
+print Markua2Styles($text, \%settings, \%styles);
