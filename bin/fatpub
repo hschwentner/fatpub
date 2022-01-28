@@ -1,31 +1,110 @@
 #!/usr/bin/env bash
 #
-# A Pandoc preprocessor that enables authors to writing books in Markdown/Markua 
+# Fatpub
+#
+# A Pandoc preprocessor that enables authors to write books in Markdown/Markua 
 # although their old-fashioned publishers expect DOC(X) files.
 #
-# Usage: fatpub 'publisher template' 'input file' 'output file'
-# Example: fatpub ptg_awph02 leanpub.md fatpub.md
 
-if [[ $# != 3 ]]; then
-    echo "Please specify three parameters with a publisher template, an input \
-        file, and an output file. Possible publisher templates: ptg_awph02 dpunkt_einspaltig dpunkt_2019."
-    exit 1
+set -o pipefail
+
+# Define constants
+TMPDIR="${TEMPDIR:-/tmp}"  # Set TMPDIR if it isn't already
+
+IFS='' read -r -d '' SCRIPT_USAGE <<EOF
+  usage:  $0 [-h/--help | -t/--template <template> -o/--output <output file> [--single-file] <input file>]
+   e.g.:  $0 --template ptg_awph02 --output fatpub.md manuscript/book.txt
+     or:  $0 --template dpunkt_2019 --output fatpub.md --single-file leanpub.md
+options:
+                    -h/--help  print this help string
+     -t/--template <template>  use publisher template. Possible publisher templates: ptg_awph02 dpunkt_einspaltig dpunkt_2019
+    -o/--output <output file>  output to file <output file>
+                --single-file  treat <input file> as containing the data directly (as opposed to containing a list of files that contain the data like \`book.txt\`)
+EOF
+
+
+# Parse arguments
+POSITIONAL_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help)
+      echo "${SCRIPT_USAGE}"
+      exit 0
+      ;;
+    -t|--template)
+      TEMPLATE="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -o|--output)
+      OUTPUTFILE="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --single-file)
+      SINGLEFILE=true
+      shift # past argument
+      ;;
+    -*|--*)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1") # save positional arg
+      shift # past argument
+      ;;
+  esac
+done
+
+set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
+
+INPUTFILE="$1"
+
+
+# Check params and args
+[[ $# > 1 ]] && echo "Too many arguments." && exit 1
+
+[[ ${TEMPLATE} == '' ]] && echo "Please specify a publisher template." && exit 1
+
+[[ ${OUTPUTFILE} == '' ]] && echo "Please specify an output file." && exit 1
+
+[[ ${INPUTFILE} == '' ]] && echo "Please specify an input file." && exit 1
+[ ! -f "$INPUTFILE" ] && echo "Input file $INPUTFILE does not exist." && exit 1
+
+
+# Choose/create Markua file
+if [[ ${SINGLEFILE} == true ]]; then
+    MARKUAFILE=${INPUTFILE}
+else
+    # Join sources into one Markua/Markdown file and insert empty lines between files
+    INPUTFILEDIR="$(cd "$(dirname "${INPUTFILE}")" && pwd)"
+    INPUTFILEBASE="$(basename "${INPUTFILE}")"
+    TMPFILE="${TMPDIR}/book.md"
+
+    pushd ${INPUTFILEDIR} > /dev/null
+    awk 'FNR==1{print ""}1' `cat ${INPUTFILEBASE}` > ${TMPFILE}
+    popd > /dev/null
+
+    MARKUAFILE=${TMPFILE}
 fi
 
-template="$1"
-inputfile="$2"
-outputfile="$3"
 
-bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Choose and call conversion script
+BINDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-case "${template}" in
+case "${TEMPLATE}" in
     ptg_awph02)
-        ${bindir}/markua2aw ${inputfile} > ${outputfile} ;;
+        ${BINDIR}/markua2aw ${MARKUAFILE} > ${OUTPUTFILE} ;;
     dpunkt_einspaltig)
-        ${bindir}/markua2dpunkt_einspaltig ${inputfile} > ${outputfile} ;;
+        ${BINDIR}/markua2dpunkt_einspaltig ${MARKUAFILE} > ${OUTPUTFILE} ;;
     dpunkt_2019)
-        ${bindir}/markua2dpunkt_2019 ${inputfile} > ${outputfile} ;;
+        ${BINDIR}/markua2dpunkt_2019 ${MARKUAFILE} > ${OUTPUTFILE} ;;
     *)
-        echo "Invalid publisher template: ${template}"
+        echo "Invalid publisher template: ${TEMPLATE}."
         exit -1 ;;
 esac
+
+
+# Cleanup
+rm ${TMPFILE}
