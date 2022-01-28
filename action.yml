@@ -16,7 +16,9 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - --template ${{ inputs.template }}
-    - --output ${{ inputs.out }}
+    - --template
+    - ${{ inputs.template }}
+    - --output
+    - ${{ inputs.out }}
     - ${{ inputs.in }}
 #    - ${{ inputs.single-file }}
