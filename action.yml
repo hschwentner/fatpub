@@ -10,10 +10,13 @@ inputs:
     required: true
   out: 
      required: true
+#  single-file:
+#    description: 'If the input is a single file (as opposed to a file of files like `book.txt`)'
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - ${{ inputs.template }}
+    - --template ${{ inputs.template }}
+    - --output ${{ inputs.out }}
     - ${{ inputs.in }}
-    - ${{ inputs.out }}
+#    - ${{ inputs.single-file }}
