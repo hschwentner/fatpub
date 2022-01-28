@@ -1,6 +1,6 @@
 FROM perl:5.34
 
-COPY . /usr/src/markua2aw
+COPY . /usr/src/fatpub
 
 WORKDIR /data
-ENTRYPOINT [ "perl", "/usr/src/markua2aw/bin/fatpub" ]
+ENTRYPOINT [ "perl", "/usr/src/fatpub/bin/fatpub" ]
