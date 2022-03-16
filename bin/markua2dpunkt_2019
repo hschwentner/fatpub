@@ -39,7 +39,7 @@ my %styles = (
 
 	# Headings
 	PART_NUM => 'PART_NUM',
-	PART_TTL => 'PART_TTL',
+	PART_TTL => 'Überschrift_Teil',
 	CHAP_NUM => 'CHAP_NUM',
 	CHAP_TTL => 'Überschrift 1',
 	H1 => 'Überschrift 2',
