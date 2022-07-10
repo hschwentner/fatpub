@@ -235,7 +235,7 @@ sub translateLists {
 sub translateFigures {
     my $text = shift;
 
-    $text =~ s/^\!\[Figure[ | ]([0-9IVX\.\-]*)(.*)\]\((.*)\)(.*)$/::: {custom-style="$styles{'ARTLIST'}"}\n![]($3)$4\n:::\n::: {custom-style="$styles{'FIG_TTL'}"}\n[Figure $1]{custom-style="$styles{'FIG_NUM'}"} $2\n:::/gm; # Abbildungen
+    $text =~ s/^\!\[(Figure|Abbildung|Abb\.)[ | ]([0-9IVX\.\-]*)(.*)\]\((.*)\)(.*)$/::: {custom-style="$styles{'ARTLIST'}"}\n![]($4)$5\n:::\n::: {custom-style="$styles{'FIG_TTL'}"}\n[$1 $2]{custom-style="$styles{'FIG_NUM'}"} $3\n:::/gm;
     $text =~ s/^(\!\[\].*)$/::: {custom-style="$styles{'ARTLIST'}"}\n$1\n:::/gm; # Image without caption
     $text =~ s/^\!\[(.+)\]\((.*)\)$/::: {custom-style="$styles{'ARTLIST'}"}\n![]($2)\n:::\n::: {custom-style="$styles{'FIG_TTL'}"}\n$1\n:::/gm; 
 #    $text =~ s/^\!\[(.+)\]\((.*)\)\{(.*)\}$/::: {custom-style="$styles{'ARTLIST'}"}\n![]($2){$3}\n:::\n::: {custom-style="$styles{'FIG_TTL'}"}\n$1\n:::/gm; 
@@ -389,7 +389,7 @@ sub translateDomainStorytellingEmphasizement {
 sub translatePartText {
     my $text = shift;
 
-    $text =~ s{(^# Part.*?^# Chapter)}{replaceWithStylesInPart($1)}msge;
+    $text =~ s{(^# [Part|Teil].*?^# [Chapter|Kapitel])}{replaceWithStylesInPart($1)}msge;
 
     return $text;
 }
@@ -488,7 +488,7 @@ sub replaceWithStylesInBox {
 sub translateForewordText {
     my $text = shift;
 
-    $text =~ s{(^# Foreword.*?^# )}{replaceWithStylesInForeword($1)}msge;
+    $text =~ s{(^# [Foreword|Geleitwort].*?^# )}{replaceWithStylesInForeword($1)}msge;
 
     return $text;
 }
@@ -506,7 +506,7 @@ sub replaceWithStylesInForeword {
 sub translatePrefaceText {
     my $text = shift;
 
-    $text =~ s{(^# Preface.*?^# )}{replaceWithStylesInPreface($1)}msge;
+    $text =~ s{(^# [Preface|Vorwort].*?^# )}{replaceWithStylesInPreface($1)}msge;
 
     return $text;
 }
@@ -555,7 +555,7 @@ sub replaceWithStylesInPreface {
 sub translateAcknowledgmentsText {
     my $text = shift;
 
-    $text =~ s{(^# Acknowledgments.*?^# )}{replaceWithStylesInAcknowledgments($1)}msge;
+    $text =~ s{(^# [Acknowledgments|Danksagung].*?^# )}{replaceWithStylesInAcknowledgments($1)}msge;
 
     return $text;
 }
@@ -595,7 +595,7 @@ sub replaceWithStylesInAboutTheAuthors {
 sub translateAppendixText {
     my $text = shift;
 
-    $text =~ s{(^# Appendix.*?^# )}{replaceWithStylesInAppendix($1)}msge;
+    $text =~ s{(^# [Appendix|Anhang].*?^# )}{replaceWithStylesInAppendix($1)}msge;
 
     return $text;
 }
@@ -617,7 +617,7 @@ sub replaceWithStylesInAppendix {
 sub translateBibliographyText {
     my $text = shift;
 
-    $text =~ s{(^# Bibliography.*?^# )}{replaceWithStylesInBibliography($1)}msge;
+    $text =~ s{(^# [Bibliography|Literatur].*?^# )}{replaceWithStylesInBibliography($1)}msge;
 
     return $text;
 }
@@ -641,24 +641,25 @@ sub translateLevelOneHeadings {
     # Frontmatter
     $text =~ s/^# Praise for (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_PP_TTL"}\nPraise for $1\n:::/gm;
     $text =~ s/^# Domain Stories$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\nDomain Stories\n:::/gm;
-    $text =~ s/^# Figures$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\nFigures\n:::/gm;
+    $text =~ s/^# (Figures|Abbildungen)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\n$1\n:::/gm;
     $text =~ s/^# ((Series Editor )?Foreword)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_FRWRD_TTL"}\n$1\n:::/gm;
-    $text =~ s/^# Preface$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_PREF_TTL"}\nPreface\n:::/gm;
-    $text =~ s/^# Acknowledgments$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_ACK_TTL"}\nAcknowledgments\n:::/gm;
+    $text =~ s/^# (Geleitwort)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_FRWRD_TTL"}\n$1\n:::/gm;
+    $text =~ s/^# (Preface|Vorwort)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_PREF_TTL"}\n$1\n:::/gm;
+    $text =~ s/^# (Acknowledgments|Danksagung)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_ACK_TTL"}\n$1\n:::/gm;
     $text =~ s/^# (About the Authors?)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_ABASET_TTL"}\n$1\n:::/gm;
 
     # Headings Backmatter
-    $text =~ s/^# Appendix (.*): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_APP_LET"}\nAppendix $1\n:::\n::: {custom-style="BKRM_APP_TTL"}\n$2\n:::/gm;
-    $text =~ s/^# Appendix: (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_APP_LET"}\nAppendix\n:::\n::: {custom-style="BKRM_APP_TTL"}\n$1\n:::/gm;
-    $text =~ s/^# Glossary$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_GLOSSET_TTL"}\nGlossary\n:::/gm;
-    $text =~ s/^# Bibliography$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_BIB_TTL"}\nBibliography\n:::/gm;
+    $text =~ s/^# (Appendix|Anhang) (.*): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_APP_LET"}\n$1 $2\n:::\n::: {custom-style="BKRM_APP_TTL"}\n$3\n:::/gm;
+    $text =~ s/^# (Appendix|Anhang): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_APP_LET"}\n$1\n:::\n::: {custom-style="BKRM_APP_TTL"}\n$2\n:::/gm;
+    $text =~ s/^# (Glossary?)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_GLOSSET_TTL"}\n$1\n:::/gm;
+    $text =~ s/^# (Bibliography|Literatur)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_BIB_TTL"}\n$1\n:::/gm;
     $text =~ s/^# Index$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_IDX_TTL"}\nIndex\n:::/gm;
 
     # Headings Mainmatter
     $text =~ s/\n(\{.*\})\n(#.*?)\n/\n\n$2\n$1\n\n/gm; #Move beginning {} with link anchors to end of heading
-    $text =~ s/^# Part (.*): (.*) #$/\n\n{{newpage}}\n\n::: {custom-style="$styles{'PART_NUM'}"}\nPart $1\n:::\n::: {custom-style="$styles{'PART_TTL'}"}\n$2\n:::/gm;
+    $text =~ s/^# (Part|Teil) (.*): (.*) #$/\n\n{{newpage}}\n\n::: {custom-style="$styles{'PART_NUM'}"}\n$1 $2\n:::\n::: {custom-style="$styles{'PART_TTL'}"}\n$3\n:::/gm;
     $text =~ s/^# (.*) #$/\n\n::: {custom-style="$styles{'PART_TTL'}"}\n$1\n:::/gm;
-    $text =~ s/^# Chapter (.*): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="$styles{'CHAP_NUM'}"}\nChapter $1\n:::\n::: {custom-style="$styles{'CHAP_TTL'}"}\n$2\n:::/gm;
+    $text =~ s/^# (Chapter|Kapitel) (.*): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="$styles{'CHAP_NUM'}"}\n$1 $2\n:::\n::: {custom-style="$styles{'CHAP_TTL'}"}\n$3\n:::/gm;
     
     # Delete starting empty page
     $text =~ s/^\n*\{\{newpage\}\}\n*//;
