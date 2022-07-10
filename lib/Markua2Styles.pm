@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2021  Henning Schwentner
+# Copyright (C) 2020-2022  Henning Schwentner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.4';
+our $VERSION = '1.7';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
