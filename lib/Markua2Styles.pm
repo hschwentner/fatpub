@@ -158,11 +158,15 @@ sub translateBodyText {
     # Paragraphs, normal
     $text =~ s/\n\n($PARAGRAPH_START.*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # einmal für ungerade Absatznummer
     $text =~ s/\n\n($PARAGRAPH_START.*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # Doppelt für Gerade Absatznummer
-    # Epigraphs/Block Quotations
+    # Epigraphs
     $text =~ s/(^# .*\n+)> (.*)(—.*)$/$1::: {custom-style="$styles{'CF_EPG_FIRST'}"}\n$2\n:::\n::: {custom-style="$styles{'CF_EPG_ATTR_AU_NA'}"}\n$3\n:::\n/gm; # Opening epigraph
     $text =~ s/(^##+ .*\n+)> (.*)(—.*)$/$1::: {custom-style="$styles{'EPG'}"}\n$2\n:::\n::: {custom-style="$styles{'EPG_ATTR_AU_NA'}"}\n$3\n:::/gm;  # Epigraph with author
     $text =~ s/(^##+ .*\n+)> (.*)$/$1::: {custom-style="$styles{'EPG'}"}\n$2\n:::/gm;  # Epigraph
+    # Block Quotations
     $text =~ s/^> ## (.*)$/::: {custom-style="$styles{'EXT_ONLY_H1'}"}\n$1\n:::/gm;  # Extract head
+    $text =~ s/^> ?(\|)/$1/gm;       # Tables in extract
+    $text =~ s/^> ?(Table: )/$1/gm;  # Table captions in extract
+    $text =~ s/^> ?(: )/$1/gm;       # Table captions in extract
     $text =~ s/^>$//gm;  # Empty extract lines
     $text =~ s/^> (.*)$/::: {custom-style="$styles{'EXT_ONLY'}"}\n$1\n:::/gm;  # Extract
 
