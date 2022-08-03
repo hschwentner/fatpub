@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.7';
+our $VERSION = '1.8';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
@@ -164,9 +164,11 @@ sub translateBodyText {
     $text =~ s/(^##+ .*\n+)> (.*)$/$1::: {custom-style="$styles{'EPG'}"}\n$2\n:::/gm;  # Epigraph
     # Block Quotations
     $text =~ s/^> ## (.*)$/::: {custom-style="$styles{'EXT_ONLY_H1'}"}\n$1\n:::/gm;  # Extract head
+    $text =~ s{^> -(.*)$}{::: {custom-style="$styles{'EXT_LIST'}"}\n$1\n:::}gm;  # Lists in extract
     $text =~ s/^> ?(\|)/$1/gm;       # Tables in extract
     $text =~ s/^> ?(Table: )/$1/gm;  # Table captions in extract
     $text =~ s/^> ?(: )/$1/gm;       # Table captions in extract
+        ## TODO: # Figures in extract
     $text =~ s/^>$//gm;  # Empty extract lines
     $text =~ s/^> (.*)$/::: {custom-style="$styles{'EXT_ONLY'}"}\n$1\n:::/gm;  # Extract
 
@@ -656,7 +658,7 @@ sub translateLevelOneHeadings {
     $text =~ s/^# (Appendix|Anhang) (.*): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_APP_LET"}\n$1 $2\n:::\n::: {custom-style="BKRM_APP_TTL"}\n$3\n:::/gm;
     $text =~ s/^# (Appendix|Anhang): (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_APP_LET"}\n$1\n:::\n::: {custom-style="BKRM_APP_TTL"}\n$2\n:::/gm;
     $text =~ s/^# (Glossary?)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_GLOSSET_TTL"}\n$1\n:::/gm;
-    $text =~ s/^# (Bibliography|Literatur)$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_BIB_TTL"}\n$1\n:::/gm;
+    $text =~ s/^# (Bibliography|Literatur)$/\n\n{{newpage}}\n\n::: {custom-style="$styles{'BKRM_BIB_TTL'}"}\n$1\n:::/gm;
     $text =~ s/^# Index$/\n\n{{newpage}}\n\n::: {custom-style="BKRM_IDX_TTL"}\nIndex\n:::/gm;
 
     # Headings Mainmatter

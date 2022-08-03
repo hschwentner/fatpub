@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # dpunkt2dpunkt_2019 - A converter from Markua to dpunkt verlag's DOCX styling
-# Copyright (C) 2021 Henning Schwentner
+# Copyright (C) 2021-2022 Henning Schwentner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -97,7 +97,7 @@ my %styles = (
 	EPG_ATTR_AU_NA => 'Zitat_Autor',
 	EXT_ONLY_H1 => 'Merksatz-Head',
 	EXT_ONLY => 'Merksatz',
-# TODO:	EXT_?? => 'Merksatz-Liste',
+	EXT_LIST => 'Merksatz-Liste',
 	
 	# Dialogue
 	DLG_FIRST => 'DLG_FIRST',
@@ -139,6 +139,7 @@ my %styles = (
 	BKRM_GLOS_KT_SCAP => 'BKRM_GLOS_KT_SCAP',
 
 	# Bibliograpy
+	BKRM_BIB_TTL => 'Überschrift 1',
 	BKRM_BIB1 => 'BKRM_BIB1',
 	BKRM_BIB2 => 'BKRM_BIB2',
 
