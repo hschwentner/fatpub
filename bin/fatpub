@@ -24,7 +24,7 @@ set -o pipefail
 TMPDIR="${TEMPDIR:-/tmp}"  # Set TMPDIR if it isn't already
 
 IFS='' read -r -d '' SCRIPT_USAGE <<EOF
-  usage:  $0 [-h/--help | -t/--template <template> -o/--output <output file> [--single-file] <input file>]
+  usage:  $0 [-h/--help | -t/--template <template> -o/--output <output file> [--single-file true] <input file>]
    e.g.:  $0 --template ptg_awph02 --output fatpub.md manuscript/book.txt
      or:  $0 --template dpunkt_2019 --output fatpub.md --single-file leanpub.md
 options:
@@ -57,6 +57,7 @@ while [[ $# -gt 0 ]]; do
     --single-file)
       SINGLEFILE="$2"
       shift # past argument
+      shift # past value
       ;;
     -*|--*)
       echo "Unknown option $1"
