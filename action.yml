@@ -10,8 +10,9 @@ inputs:
     required: true
   out: 
      required: true
-#  single-file:
-#    description: 'If the input is a single file (as opposed to a file of files like `book.txt`)'
+  single-file:
+    description: 'If the input is a single file (as opposed to a file of files like `book.txt`)'
+    default: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -21,4 +22,5 @@ runs:
     - --output
     - ${{ inputs.out }}
     - ${{ inputs.in }}
-#    - ${{ inputs.single-file }}
+    - --single-file
+    - ${{ inputs.single-file }}

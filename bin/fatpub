@@ -55,7 +55,7 @@ while [[ $# -gt 0 ]]; do
       shift # past value
       ;;
     --single-file)
-      SINGLEFILE=true
+      SINGLEFILE="$2"
       shift # past argument
       ;;
     -*|--*)
