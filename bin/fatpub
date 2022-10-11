@@ -122,4 +122,4 @@ esac
 # Cleanup
 if [[ ${SINGLEFILE} != true ]]; then
   rm ${TMPFILE}
-elif
+fi
