@@ -15,7 +15,7 @@
 
 package Markua2Styles;
 
-use v5.34;
+use v5.36;
 use warnings;
 use autodie;
 
