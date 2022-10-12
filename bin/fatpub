@@ -26,12 +26,12 @@ TMPDIR="${TEMPDIR:-/tmp}"  # Set TMPDIR if it isn't already
 IFS='' read -r -d '' SCRIPT_USAGE <<EOF
   usage:  $0 [-h/--help | -t/--template <template> -o/--output <output file> [--single-file true] <input file>]
    e.g.:  $0 --template ptg_awph02 --output fatpub.md manuscript/book.txt
-     or:  $0 --template dpunkt_2019 --output fatpub.md --single-file leanpub.md
+     or:  $0 --template dpunkt_2019 --output fatpub.md --single-file true leanpub.md
 options:
                     -h/--help  print this help string
      -t/--template <template>  use publisher template. Possible publisher templates: ptg_awph02 dpunkt_einspaltig dpunkt_2019
     -o/--output <output file>  output to file <output file>
-                --single-file  treat <input file> as containing the data directly (as opposed to containing a list of files that contain the data like \`book.txt\`)
+           --single-file true  treat <input file> as containing the data directly (as opposed to containing a list of files that contain the data like \`book.txt\`)
 EOF
 
 
