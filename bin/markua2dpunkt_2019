@@ -103,7 +103,7 @@ my %styles = (
 	DLG_FIRST => 'DLG_FIRST',
 	DLG_MID => 'DLG_MID',
 	DLG_LAST => 'DLG_LAST',
-	DLG_SPKR => 'DLG_SPKR',
+	DLG_SPKR => '_fett',
 
 	# Equations
 	EQ_ONLY => 'EQ_ONLY',
