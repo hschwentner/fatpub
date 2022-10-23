@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.8';
+our $VERSION = '1.10';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
@@ -76,7 +76,8 @@ sub cleanup {
     my $text = shift;
 
     $text =~ s/^%%:::(.*)$/:::$1/gm;   # Für Leanpub auskommentiert, für DOCX einkommentieren
-    $text =~ s/^%%(.*?)\n//gm;         # Kommentare starten mit ^%%
+    $text =~ s/^%%(.*?)\n//gm;         # Delete Leanpub comments
+    $text =~ s{(<!--.*?-->)}{}msg;     # Delete HTML comments
     $text =~ s/^ *$//gm;               # Lines with only whitespace                                               # Kommentare starten mit ^%%
     $text =~ s/\n\n+\n/\n\n/gm;        # Not more than 2 newlines
     $text =~ s/^\{sample(.*)$//gm;     # Leanpub-Direktiven wie {sample} ausblenden
@@ -91,10 +92,11 @@ sub cleanupGermanAbbreviations {
     my $text = shift;
 
     $text =~ s/d\.[  ]?h\./d.&#x202f;h./gm;
-    $text =~ s/z\.[  ]?B\./z.&#x202f;B./gm;
+    $text =~ s/o\.[  ]?ä\./o.&#x202f;ä./gm;
+    $text =~ s/s\.[  ]?u\./s.&#x202f;u./gm;
     $text =~ s/u\.[  ]?a\./u.&#x202f;a./gm;
     $text =~ s/u\.[  ]?ä\./u.&#x202f;ä./gm;
-    $text =~ s/o\.[  ]?ä\./o.&#x202f;ä./gm;
+    $text =~ s/z\.[  ]?B\./z.&#x202f;B./gm;
 
     return $text;
 }
