@@ -78,6 +78,7 @@ sub cleanup {
     $text =~ s/^%%:::(.*)$/:::$1/gm;   # Für Leanpub auskommentiert, für DOCX einkommentieren
     $text =~ s/^%%(.*?)\n//gm;         # Delete Leanpub comments
     $text =~ s{(<!--.*?-->)}{}msg;     # Delete HTML comments
+    $text =~ s{ ?\\$}{  }msg;          # Replace escaped line breaks with two spaces (Fix for a bug in Markdown?) 
     $text =~ s/^ *$//gm;               # Lines with only whitespace                                               # Kommentare starten mit ^%%
     $text =~ s/\n\n+\n/\n\n/gm;        # Not more than 2 newlines
     $text =~ s/^\{sample(.*)$//gm;     # Leanpub-Direktiven wie {sample} ausblenden
