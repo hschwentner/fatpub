@@ -167,7 +167,11 @@ sub translateBodyText {
     $text =~ s/(^##+ .*\n+)> (.*)$/$1::: {custom-style="$styles{'EPG'}"}\n$2\n:::/gm;  # Epigraph
     # Block Quotations
     $text =~ s/^> ## (.*)$/::: {custom-style="$styles{'EXT_ONLY_H1'}"}\n$1\n:::/gm;  # Extract head
-    $text =~ s{^> -(.*)$}{::: {custom-style="$styles{'EXT_LIST'}"}\n$1\n:::}gm;  # Lists in extract
+    $text =~ s{^> - (.*)$}{::: {custom-style="$styles{'EXT_LIST'}"}\n$1\n:::}gm;  # Lists in extract
+    $text =~ s/^> ?(```)/$1/gm;      # Code in extract like normal code
+    $text =~ s/^> ?(    ```)/$1/gm;      # Code in lists in extract like normal code
+    $text =~ s{(^ ?```.*?^ *```)}{removeStartingArrow($1)}msge; # Code in extract like normal code
+    $text =~ s{(^ ?    ```.*?^ *```)}{removeStartingArrow($1)}msge; # Code in lists in extract like normal code
     $text =~ s/^> ?(\|)/$1/gm;       # Tables in extract
     $text =~ s/^> ?(Table: )/$1/gm;  # Table captions in extract
     $text =~ s/^> ?(: )/$1/gm;       # Table captions in extract
@@ -194,6 +198,10 @@ sub translateSubHeadings {
 
 sub translateLists {
     my ($text) = @_;
+
+    # Following paragraph in lists
+    $text =~ s/\n(- .*)\n\n?    (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
+    # TODO: BL_CDT
     
     # Bulleted, level 1
     $text =~ s/\n\n- (.*)\n/\n\n::: {custom-style="$styles{'BL_FIRST'}"}\n$1\n:::\n/gm;
@@ -255,12 +263,20 @@ sub translateFigures {
 sub translateSourceCode {
     my $text = shift;
 
+    # Code in lists like normal code
+    $text =~ s{(^    ```.*?^    ```)}{removeStartingFourSpaces($1)}msge;
+#    $text =~ s{^    (```.*?^)    ```}{```$1```}msg;
+
+    # TODO: make the following configurable
+    # Shorten four spaces to two spaces
+    $text =~ s{(^```.*?^```)}{replaceFourSpacesWithTwoSpaces($1)}msge;
+
     # Escaping
     $text =~ s{(^```.*?^```)}{escapeSpecialCharacters($1)}msge;
 
     # Syntax highlighting
     $text =~ s{(^```gherkin.*?^```)}{replaceWithGherkinCodeStyles($1)}msge;
-    $text =~ s{(^```java.*?^```)}{replaceWithJavaCodeStyles($1)}msge;
+    $text =~ s{(```java.*?```)}{replaceWithJavaCodeStyles($1)}msge;
     $text =~ s{(^```fsharp.*?^```)}{replaceWithFSharpCodeStyles($1)}msge;
     $text =~ s{(^```userstory.*?^```)}{replaceWithUserStoryCodeStyles($1)}msge;
 
@@ -283,10 +299,40 @@ sub translateSourceCode {
     $text =~ s/^(.*)\n(\[\d+\]\{custom\-style="$styles{'DT_NUM'}"\}.*)\n```$/$1\n:::\n::: {custom-style="$styles{'DT_LAST'}"}\n$2\n:::\n/gm;  # End of Code-Block
     $text =~ s/^```.+\n(.*)$/::: {custom-style="$styles{'CDT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'CDT_MID'}"}/gm;
     $text =~ s/^(.*)\n(.*)\n```$/$1\n:::\n::: {custom-style="$styles{'CDT_LAST'}"}\n$2\n:::\n/gm;  # End of Code-Block
+#    #   code in lists
+#    $text =~ s/^    ```.+\n    (\[\d+\]\{custom\-style="$styles{'DT_NUM'}"\}.*)$/::: {custom-style="$styles{'BL_DT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'BL_DT_MID'}"}/gm;
+#    $text =~ s/^(.*)\n    (\[\d+\]\{custom\-style="$styles{'DT_NUM'}"\}.*)\n    ```$/$1\n:::\n::: {custom-style="$styles{'BL_DT_LAST'}"}\n$2\n:::\n/gm;  # End of Code-Block
+#    $text =~ s/^    ```.+\n    (.*)$/::: {custom-style="$styles{'BL_CDT_FIRST'}"}\n$1\n:::\n::: {custom-style="$styles{'BL_CDT_MID'}"}/gm;
+#    $text =~ s/^(.*)\n(.*)\n    ```$/$1\n:::\n::: {custom-style="$styles{'BL_CDT_LAST'}"}\n$2\n:::\n/gm;  # End of Code-Block
 
     # code in text
     $text =~ s/`(..+?)`/\[$1\]{custom-style="$styles{'CIT'}"}/gm;
 
+    return $text;
+}
+
+sub removeStartingArrow {
+    my $text = shift;
+
+    $text =~ s/^> //gm;   # remove starting >
+    $text =~ s/^>//gm;   # remove starting >
+ 
+    return $text;
+}
+
+sub removeStartingFourSpaces {
+    my $text = shift;
+
+    $text =~ s/^    //gm;   # remove starting 4 spaces
+ 
+    return $text;
+}
+
+sub replaceFourSpacesWithTwoSpaces {
+    my $text = shift;
+
+    $text =~ s/    /  /gm;
+ 
     return $text;
 }
 
@@ -297,6 +343,7 @@ sub escapeSpecialCharacters {
     $text =~ s/\*/&ast;/gm;   # Escape asterisk
     $text =~ s/\</&lt;/gm;    # Escape opening angle bracket
     $text =~ s/\>/&gt;/gm;    # Escape closing angle bracket
+    $text =~ s/\@/&#64;/gm;    # Escape at sign
 
     # Escape spaces
     $text =~ s/ /&nbsp;/gm;
@@ -336,11 +383,11 @@ sub replaceWithJavaCodeStyles {
     my $text = shift;
 
     # keywords
-    $text =~ s/(import|static|public|class|void|var|new|enum|int|float|assert|boolean)&nbsp;/\[$1\]{custom-style="$styles{'DT_BOLD'}"}&nbsp;/gm;
+    $text =~ s/(import|package|static|public|class|void|var|new|enum|int|float|assert|boolean)&nbsp;/\[$1\]{custom-style="$styles{'DT_BOLD'}"}&nbsp;/gm;
     
     # comments
     $text =~ s/(\/\/.*)$/\[$1\]{custom-style="$styles{'DT_ITAL'}"}/gm;
-    $text =~ s/(\/&ast;.*?&ast;\/)/\[$1\]{custom-style="$styles{'DT_ITAL'}"}/gm;
+    $text =~ s/(\/&ast;.*?&ast;\/)/\[$1\]{custom-style="$styles{'DT_ITAL'}"}/gsm;
 
     return $text;
 }
@@ -352,7 +399,7 @@ sub replaceWithFSharpCodeStyles {
     $text =~ s/(type|of|let|fun|open)&nbsp;/\[$1\]{custom-style="$styles{'DT_BOLD'}"}&nbsp;/gm;
 
     # comments
-    $text =~ s/(\(&ast;.*?&ast;\))/\[$1\]{custom-style="$styles{'DT_ITAL'}"}/gm;
+    $text =~ s/(\(&ast;.*?&ast;\))/\[$1\]{custom-style="$styles{'DT_ITAL'}"}/gsm;
 
     return $text;
 }
@@ -480,6 +527,8 @@ sub replaceWithStylesInBox {
     $text =~ s/::: \{custom-style="BL_FIRST"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_FIRST"}\n[•\]{custom-style="BX1_BL_DING"}\t$1\n:::/gm;
     $text =~ s/::: \{custom-style="BL_MID"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_MID"}\n[•\]{custom-style="BX1_BL_DING"}\t$1\n:::/gm;
     $text =~ s/::: \{custom-style="BL_LAST"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_LAST"}\n[•\]{custom-style="BX1_BL_DING"}\t$1\n:::/gm;
+    $text =~ s/::: \{custom-style="BL_CON"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_CON"}\t$1\n:::/gm;
+    $text =~ s/::: \{custom-style="BL_CON_LAST"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_CON_LAST"}\t$1\n:::/gm;
 
     # Lists, numbered
     #       level 1
