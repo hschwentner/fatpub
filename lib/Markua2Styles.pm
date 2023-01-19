@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2022  Henning Schwentner
+# Copyright (C) 2020-2023  Henning Schwentner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
@@ -546,7 +546,7 @@ sub replaceWithStylesInBox {
 sub translateForewordText {
     my $text = shift;
 
-    $text =~ s{(^# [Foreword|Geleitwort].*?^# )}{replaceWithStylesInForeword($1)}msge;
+    $text =~ s{(^# (Foreword|Geleitwort).*?^# )}{replaceWithStylesInForeword($1)}msge;
 
     return $text;
 }
@@ -564,7 +564,7 @@ sub replaceWithStylesInForeword {
 sub translatePrefaceText {
     my $text = shift;
 
-    $text =~ s{(^# [Preface|Vorwort].*?^# )}{replaceWithStylesInPreface($1)}msge;
+    $text =~ s{(^# (Preface|Vorwort).*?^# )}{replaceWithStylesInPreface($1)}msge;
 
     return $text;
 }
@@ -613,7 +613,7 @@ sub replaceWithStylesInPreface {
 sub translateAcknowledgmentsText {
     my $text = shift;
 
-    $text =~ s{(^# [Acknowledgments|Danksagung].*?^# )}{replaceWithStylesInAcknowledgments($1)}msge;
+    $text =~ s{(^# (Acknowledgments|Danksagung).*?^# )}{replaceWithStylesInAcknowledgments($1)}msge;
 
     return $text;
 }
@@ -653,7 +653,7 @@ sub replaceWithStylesInAboutTheAuthors {
 sub translateAppendixText {
     my $text = shift;
 
-    $text =~ s{(^# [Appendix|Anhang].*?^# )}{replaceWithStylesInAppendix($1)}msge;
+    $text =~ s{(^# (Appendix|Anhang).*?^# )}{replaceWithStylesInAppendix($1)}msge;
 
     return $text;
 }
@@ -675,7 +675,7 @@ sub replaceWithStylesInAppendix {
 sub translateBibliographyText {
     my $text = shift;
 
-    $text =~ s{(^# [Bibliography|Literatur].*?^# )}{replaceWithStylesInBibliography($1)}msge;
+    $text =~ s{(^# (Bibliography|Literatur).*?^# )}{replaceWithStylesInBibliography($1)}msge;
 
     return $text;
 }
