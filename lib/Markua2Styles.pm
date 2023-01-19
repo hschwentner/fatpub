@@ -701,7 +701,7 @@ sub translateLevelOneHeadings {
     $text =~ s/^# Domain Stories$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\nDomain Stories\n:::/gm;
     $text =~ s/^# (Figures|Abbildungen)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\n$1\n:::/gm;
     $text =~ s/^# ((Series Editor )?Foreword)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_FRWRD_TTL"}\n$1\n:::/gm;
-    $text =~ s/^# (Geleitwort)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_FRWRD_TTL"}\n$1\n:::/gm;
+    $text =~ s/^# (Geleitwort.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_FRWRD_TTL"}\n$1\n:::/gm;
     $text =~ s/^# (Preface|Vorwort)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_PREF_TTL"}\n$1\n:::/gm;
     $text =~ s/^# (Acknowledgments|Danksagung)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_ACK_TTL"}\n$1\n:::/gm;
     $text =~ s/^# (About the Authors?)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_ABASET_TTL"}\n$1\n:::/gm;
