@@ -546,7 +546,9 @@ sub replaceWithStylesInBox {
 sub translateForewordText {
     my $text = shift;
 
+    $text =~ s{(^# (Series Editor Foreword|Geleitwort des Serienherausgebers).*?^# )}{replaceWithStylesInForeword($1)}msge;
     $text =~ s{(^# (Foreword|Geleitwort).*?^# )}{replaceWithStylesInForeword($1)}msge;
+    $text =~ s{(^# Geleitwort.*?^# Vorwort)}{replaceWithStylesInForeword($1)}msge;
 
     return $text;
 }
@@ -698,7 +700,7 @@ sub translateLevelOneHeadings {
 
     # Frontmatter
     $text =~ s/^# Praise for (.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_PP_TTL"}\nPraise for $1\n:::/gm;
-    $text =~ s/^# Domain Stories$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\nDomain Stories\n:::/gm;
+    $text =~ s/^# Domain Stor(ie|y)s$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\nDomain Stor$1s\n:::/gm;
     $text =~ s/^# (Figures|Abbildungen)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_TOC_FIG_TTL"}\n$1\n:::/gm;
     $text =~ s/^# ((Series Editor )?Foreword)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_FRWRD_TTL"}\n$1\n:::/gm;
     $text =~ s/^# (Geleitwort.*)$/\n\n{{newpage}}\n\n::: {custom-style="BKFM_FRWRD_TTL"}\n$1\n:::/gm;
