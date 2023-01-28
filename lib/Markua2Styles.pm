@@ -373,8 +373,10 @@ sub replaceWithCodeBodyStyles {
 sub replaceWithGherkinCodeStyles {
     my $text = shift;
 
-    # keywords
+    # keywords EN
     $text =~ s/(Scenario|Given|And|When|Then)(\s|:|&nbsp;)/\[$1\]{custom-style="$styles{'DT_BOLD'}"}$2/gm;
+    # keywords DE
+    $text =~ s/(Szenario|Gegeben&nbsp;sei|Und|Wenn|Dann)(\s|:|&nbsp;)/\[$1\]{custom-style="$styles{'DT_BOLD'}"}$2/gm;
 
     return $text;
 }
@@ -410,11 +412,13 @@ sub replaceWithUserStoryCodeStyles {
     # Treat user stories as equations
     $text =~ s/```userstory/```\$/gm;
 
-    # keywords
-    $text =~ s/(As an?|I want|so that) /\[$1\]{custom-style="$styles{'BOLD'}"} /gm;
+    # keywords EN
+    $text =~ s/(As&nbsp;an?|I&nbsp;want|so&nbsp;that)/\[$1\]{custom-style="$styles{'BOLD'}"}/gm;
+    # keywords DE
+    $text =~ s/(Als&nbsp;eine?|möchte&nbsp;ich|damit|sodass)/\[$1\]{custom-style="$styles{'BOLD'}"}/gm;
 
     # placeholders
-    $text =~ s/(\(&lt;.*?&gt;\))/\[$1\]{custom-style="$styles{'ITAL'}"}/gm;
+    $text =~ s/(&lt;.*?&gt;)/\[$1\]{custom-style="$styles{'ITAL'}"}/gm;
 
     return $text;
 }
