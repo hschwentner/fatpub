@@ -385,7 +385,10 @@ sub replaceWithJavaCodeStyles {
     my $text = shift;
 
     # keywords
-    $text =~ s/(import|package|static|public|class|void|var|new|enum|int|float|double|assert|boolean|record)&nbsp;/\[$1\]{custom-style="$styles{'DT_BOLD'}"}&nbsp;/gm;
+    $text =~ s/(import|package|class|enum|record)&nbsp;/\[$1\]{custom-style="$styles{'DT_BOLD'}"}&nbsp;/gm;
+    $text =~ s/(final|static|public|protected|private)&nbsp;/\[$1\]{custom-style="$styles{'DT_BOLD'}"}&nbsp;/gm;
+    $text =~ s/(new|assert|return)&nbsp;/\[$1\]{custom-style="$styles{'DT_BOLD'}"}&nbsp;/gm;
+    $text =~ s/(var|void|boolean|char|byte|short|int|long|float|double)&nbsp;/\[$1\]{custom-style="$styles{'DT_BOLD'}"}&nbsp;/gm;
     
     # comments
     $text =~ s/(\/\/.*)$/\[$1\]{custom-style="$styles{'DT_ITAL'}"}/gm;
