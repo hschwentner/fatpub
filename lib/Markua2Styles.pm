@@ -308,6 +308,8 @@ sub translateSourceCode {
     # code in text
     $text =~ s/`(..+?)`/\[$1\]{custom-style="$styles{'CIT'}"}/gm;
 
+    $text =~ s/^Listing: (.*)$/```\n```\n\nListing: $1/gm;  # Listing captions
+
     return $text;
 }
 
