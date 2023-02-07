@@ -341,6 +341,9 @@ sub replaceFourSpacesWithTwoSpaces {
 sub escapeSpecialCharacters {
     my $text = shift;
 
+    # Escape empty lines
+    $text =~ s{^$}{&nbsp;}gm;
+
     # Escape Markdown special characters
     $text =~ s/\*/&ast;/gm;   # Escape asterisk
     $text =~ s/\</&lt;/gm;    # Escape opening angle bracket
