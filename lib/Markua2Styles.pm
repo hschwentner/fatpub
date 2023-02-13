@@ -44,11 +44,11 @@ sub Markua2Styles {
     $text = translateFrontmatter($text);
     $text = translateBackmatter($text);
 
+    $text = translateSourceCode($text);
     $text = translateBodyText($text);
     $text = translateSubHeadings($text);
     $text = translateFigures($text);
     $text = translateLists($text);
-    $text = translateSourceCode($text);
 
     $text = translateEmphasizement($text);
     $text = translateDomainStorytellingEmphasizement($text);
@@ -308,7 +308,9 @@ sub translateSourceCode {
     # code in text
     $text =~ s/`(..+?)`/\[$1\]{custom-style="$styles{'CIT'}"}/gm;
 
-    $text =~ s/^Listing: (.*)$/```\n```\n\nListing: $1/gm;  # Listing captions
+    # Listing captions
+    $text =~ s/^Listing: (.*)$/```\n```\n\n: $1/gm;
+#    $text =~ s/^: (.*)\n+```/```\n```\n\n: $1```/gm;
 
     return $text;
 }
