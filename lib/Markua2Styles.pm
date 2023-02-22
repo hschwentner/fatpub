@@ -168,10 +168,6 @@ sub translateBodyText {
     # Block Quotations
     $text =~ s/^> ## (.*)$/::: {custom-style="$styles{'EXT_ONLY_H1'}"}\n$1\n:::/gm;  # Extract head
     $text =~ s{^> - (.*)$}{::: {custom-style="$styles{'EXT_LIST'}"}\n$1\n:::}gm;  # Lists in extract
-    $text =~ s/^> ?(```)/$1/gm;      # Code in extract like normal code
-    $text =~ s/^> ?(    ```)/$1/gm;      # Code in lists in extract like normal code
-    $text =~ s{(^ ?```.*?^ *```)}{removeStartingArrow($1)}msge; # Code in extract like normal code
-    $text =~ s{(^ ?    ```.*?^ *```)}{removeStartingArrow($1)}msge; # Code in lists in extract like normal code
     $text =~ s/^> ?(\|)/$1/gm;       # Tables in extract
     $text =~ s/^> ?(Table: )/$1/gm;  # Table captions in extract
     $text =~ s/^> ?(: )/$1/gm;       # Table captions in extract
@@ -265,7 +261,13 @@ sub translateSourceCode {
 
     # Code in lists like normal code
     $text =~ s{(^    ```.*?^    ```)}{removeStartingFourSpaces($1)}msge;
-#    $text =~ s{^    (```.*?^)    ```}{```$1```}msg;
+
+    # Code in extract like normal code
+    $text =~ s/^> ?(```)/$1/gm;      
+    $text =~ s/^> ?(    ```)/$1/gm;      # Code in lists in extract like normal code
+    $text =~ s{(^ ?```.*?^ *```)}{removeStartingArrow($1)}msge; # Code in extract like normal code
+    $text =~ s{(^ ?    ```.*?^ *```)}{removeStartingArrow($1)}msge; # Code in lists in extract like normal code
+    $text =~ s/^> ?(Listing: )/$1/gm;  # Listing captions in extract like normal listing captions
 
     # TODO: make the following configurable
     # Shorten four spaces to two spaces
