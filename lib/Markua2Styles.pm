@@ -196,7 +196,11 @@ sub translateLists {
     my ($text) = @_;
 
     # Following paragraph in lists
+    $text =~ s/\n(- .*)\n\n?    (.*)\n\n?    (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n::: {custom-style="$styles{'BL_CON'}"}\n$3\n:::\n/gm;
     $text =~ s/\n(- .*)\n\n?    (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
+    $text =~ s/\n(\d+\. .*)\n\n?    (.*)\n\n?    (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n::: {custom-style="$styles{'BL_CON'}"}\n$3\n:::\n/gm;
+    $text =~ s/\n(\d+\. .*)\n\n?    (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
+##    $text =~ s/\n(> - .*)\n\n?>     (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
     # TODO: BL_CDT
     
     # Bulleted, level 1
