@@ -474,33 +474,34 @@ sub replaceWithStylesInPart {
     my $text = shift;
 
     # Headings
-    $text =~ s/"H1"/"$styles{'PART_H1'}"/g;   
-    $text =~ s/"H2"/"$styles{'PART_H2'}"/g;
+    $text =~ s/"$styles{'H1'}"/"$styles{'PART_H1'}"/g;   
+    $text =~ s/"$styles{'H2'}"/"$styles{'PART_H2'}"/g;
 
     # Paragraphs
-    $text =~ s/"HEADFIRST"/"$styles{'PART_FIRST'}"/g; #TODO: or PART_HEADFIRST??
-    $text =~ s/"CHAP_BM"/"$styles{'PART'}"/g;
+    $text =~ s/"$styles{'HEADFIRST'}"/"$styles{'PART_FIRST'}"/g; #TODO: or PART_HEADFIRST??
+    $text =~ s/"$styles{'CHAP_BM'}"/"$styles{'PART'}"/g;
 
     # Lists, bulleted
-    $text =~ s/"BL_FIRST"/"$styles{'PART_BL_FIRST'}"/g;
-    $text =~ s/"BL_MID"/"$styles{'PART_BL_MID'}"/g;
-    $text =~ s/"BL_LAST"/"$styles{'PART_BL_LAST'}"/g;
+    $text =~ s/"$styles{'BL_FIRST'}"/"$styles{'PART_BL_FIRST'}"/g;
+    $text =~ s/"$styles{'BL_MID'}"/"$styles{'PART_BL_MID'}"/g;
+    $text =~ s/"$styles{'BL_LAST'}"/"$styles{'PART_BL_LAST'}"/g;
 
     # Code
-    $text =~ s/"CDT_ONLY"/"$styles{'PART_CDT_ONLY'}"/g;
-    $text =~ s/"CDT_FIRST"/"$styles{'PART_CDT_FIRST'}"/g;
-    $text =~ s/"CDT_MID"/"$styles{'PART_CDT_MID'}"/g;
-    $text =~ s/"CDT_LAST"/"$styles{'PART_CDT_LAST'}"/g;
+    $text =~ s/"$styles{'CDT_ONLY'}"/"$styles{'PART_CDT_ONLY'}"/g;
+    $text =~ s/"$styles{'CDT_FIRST'}"/"$styles{'PART_CDT_FIRST'}"/g;
+    $text =~ s/"$styles{'CDT_MID'}"/"$styles{'PART_CDT_MID'}"/g;
+    $text =~ s/"$styles{'CDT_LAST'}"/"$styles{'PART_CDT_LAST'}"/g;
 
     # Figures
-    $text =~ s/"FIG_TTL"/"$styles{'PART_FIG_TTL'}"/g;
-    $text =~ s/"FIG_NUM"/"$styles{'PART_FIG_NUM'}"/g;
+    $text =~ s/"$styles{'FIG_TTL'}"/"$styles{'PART_FIG_TTL'}"/g;
+    $text =~ s/"$styles{'FIG_NUM'}"/"$styles{'PART_FIG_NUM'}"/g;
 
-    # Tables
-    $text =~ s/"TBL"/"$styles{'PART_TBL'}"/g;
-    $text =~ s/"TBL_COLHD"/"$styles{'PART_TBL_COLHD'}"/g;
-    $text =~ s/"TBL_TTL"/"$styles{'PART_TBL_TTL'}"/g;
-    $text =~ s/"TBL_NUM"/"$styles{'PART_TBL_NUM'}"/g;
+# TODO:
+#    # Tables
+#    $text =~ s/"$styles{'TBL'}"/"$styles{'PART_TBL'}"/g;
+#    $text =~ s/"$styles{'TBL_COLHD'}"/"$styles{'PART_TBL_COLHD'}"/g;
+#    $text =~ s/"$styles{'TBL_TTL'}"/"$styles{'PART_TBL_TTL'}"/g;
+#    $text =~ s/"$styles{'TBL_NUM'}"/"$styles{'PART_TBL_NUM'}"/g;
 
     return $text;
 }
