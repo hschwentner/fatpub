@@ -142,7 +142,32 @@ my %styles = (
 	BKRM_BIB1 => 'BKRM_BIB1',
 	BKRM_BIB2 => 'BKRM_BIB2',
 
-# TODO: replacement of styles for Part, Acknowledgements, About the Authors, etc.
+	# Part
+    # 	Headings
+    PART_H1 => 'PART_H1',   
+    PART_H2 => 'PART_H2',
+    # 	Paragraphs
+    PART_FIRST => 'PART_FIRST',
+    PART => 'PART',
+    # 	Lists, bulleted
+    PART_BL_FIRST => 'PART_BL_FIRST',
+    PART_BL_MID => 'PART_BL_MID',
+    PART_BL_LAST => 'PART_BL_LAST',
+    # 	Code
+    PART_CDT_ONLY => 'PART_CDT_ONLY',
+    PART_CDT_FIRST => 'PART_CDT_FIRST',
+    PART_CDT_MID => 'PART_CDT_MID',
+    PART_CDT_LAST => 'PART_CDT_LAST',
+    # 	Figures
+    PART_FIG_TTL => 'PART_FIG_TTL',
+    PART_FIG_NUM => 'PART_FIG_NUM',
+    # 	Tables
+    PART_TBL => 'PART_TBL',
+    PART_TBL_COLHD => 'PART_TBL_COLHD',
+    PART_TBL_TTL => 'PART_TBL_TTL',
+    PART_TBL_NUM => 'PART_TBL_NUM',
+
+# TODO: replacement of styles for Acknowledgements, About the Authors, etc.
 
 );
 

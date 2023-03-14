@@ -474,33 +474,33 @@ sub replaceWithStylesInPart {
     my $text = shift;
 
     # Headings
-    $text =~ s/"H1"/"PART_H1"/g;
-    $text =~ s/"H2"/"PART_H2"/g;
+    $text =~ s/"H1"/"$styles{'PART_H1'}"/g;   
+    $text =~ s/"H2"/"$styles{'PART_H2'}"/g;
 
     # Paragraphs
-    $text =~ s/"HEADFIRST"/"PART_FIRST"/g; #TODO: or PART_HEADFIRST??
-    $text =~ s/"CHAP_BM"/"PART"/g;
+    $text =~ s/"HEADFIRST"/"$styles{'PART_FIRST'}"/g; #TODO: or PART_HEADFIRST??
+    $text =~ s/"CHAP_BM"/"$styles{'PART'}"/g;
 
     # Lists, bulleted
-    $text =~ s/"BL_FIRST"/"PART_BL_FIRST"/g;
-    $text =~ s/"BL_MID"/"PART_BL_MID"/g;
-    $text =~ s/"BL_LAST"/"PART_BL_LAST"/g;
+    $text =~ s/"BL_FIRST"/"$styles{'PART_BL_FIRST'}"/g;
+    $text =~ s/"BL_MID"/"$styles{'PART_BL_MID'}"/g;
+    $text =~ s/"BL_LAST"/"$styles{'PART_BL_LAST'}"/g;
 
     # Code
-    $text =~ s/"CDT_ONLY"/"PART_CDT_ONLY"/g;
-    $text =~ s/"CDT_FIRST"/"PART_CDT_FIRST"/g;
-    $text =~ s/"CDT_MID"/"PART_CDT_MID"/g;
-    $text =~ s/"CDT_LAST"/"PART_CDT_LAST"/g;
+    $text =~ s/"CDT_ONLY"/"$styles{'PART_CDT_ONLY'}"/g;
+    $text =~ s/"CDT_FIRST"/"$styles{'PART_CDT_FIRST'}"/g;
+    $text =~ s/"CDT_MID"/"$styles{'PART_CDT_MID'}"/g;
+    $text =~ s/"CDT_LAST"/"$styles{'PART_CDT_LAST'}"/g;
 
     # Figures
-    $text =~ s/"FIG_TTL"/"PART_FIG_TTL"/g;
-    $text =~ s/"FIG_NUM"/"PART_FIG_NUM"/g;
+    $text =~ s/"FIG_TTL"/"$styles{'PART_FIG_TTL'}"/g;
+    $text =~ s/"FIG_NUM"/"$styles{'PART_FIG_NUM'}"/g;
 
     # Tables
-    $text =~ s/"TBL"/"PART_TBL"/g;
-    $text =~ s/"TBL_COLHD"/"PART_TBL_COLHD"/g;
-    $text =~ s/"TBL_TTL"/"PART_TBL_TTL"/g;
-    $text =~ s/"TBL_NUM"/"PART_TBL_NUM"/g;
+    $text =~ s/"TBL"/"$styles{'PART_TBL'}"/g;
+    $text =~ s/"TBL_COLHD"/"$styles{'PART_TBL_COLHD'}"/g;
+    $text =~ s/"TBL_TTL"/"$styles{'PART_TBL_TTL'}"/g;
+    $text =~ s/"TBL_NUM"/"$styles{'PART_TBL_NUM'}"/g;
 
     return $text;
 }

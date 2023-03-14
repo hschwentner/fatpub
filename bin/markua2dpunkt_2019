@@ -147,7 +147,32 @@ my %styles = (
 	BKRM_BIB1 => 'BKRM_BIB1',
 	BKRM_BIB2 => 'BKRM_BIB2',
 
-# TODO: replacement of styles for Part, Acknowledgements, About the Authors, etc.
+	# Part
+    # 	Headings
+    PART_H1 => 'Überschrift_ohneNum',   
+    PART_H2 => 'Überschrift_ohneNum',
+    # 	Paragraphs
+    PART_FIRST => 'Standard',
+    PART => 'Standard-Folge',
+    # 	Lists, bulleted
+    PART_BL_FIRST => 'Liste-Square',
+    PART_BL_MID => 'Liste-Square',
+    PART_BL_LAST => 'Liste-Square',
+    # 	Code
+    PART_CDT_ONLY => 'Listing',
+    PART_CDT_FIRST => 'Listing_Folge',
+    PART_CDT_MID => 'Listing_Folge',
+    PART_CDT_LAST => 'Listing_Folge',
+    # 	Figures
+    PART_FIG_TTL => 'Beschriftung',
+    PART_FIG_NUM => 'PART_FIG_NUM',
+    # 	Tables
+    PART_TBL => 'PART_TBL',
+    PART_TBL_COLHD => 'PART_TBL_COLHD',
+    PART_TBL_TTL => 'PART_TBL_TTL',
+    PART_TBL_NUM => 'PART_TBL_NUM',
+
+# TODO: replacement of styles for Acknowledgements, About the Authors, etc.
 
 );
 
