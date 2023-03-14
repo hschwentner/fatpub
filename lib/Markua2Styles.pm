@@ -466,6 +466,7 @@ sub translatePartText {
     my $text = shift;
 
     $text =~ s{(^# [Part|Teil].*?^# [Chapter|Kapitel])}{replaceWithStylesInPart($1)}msge;
+    $text =~ s{(\n# \N*? #\n.*?\n# )}{replaceWithStylesInPart($1)}msge;
 
     return $text;
 }
