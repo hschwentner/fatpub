@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.15';
+our $VERSION = '1.16';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
@@ -41,6 +41,8 @@ sub Markua2Styles {
 
     $text = cleanupGermanAbbreviations($text);
 
+    $text = translateSpecialAsides($text);
+
     $text = translateFrontmatter($text);
     $text = translateBackmatter($text);
 
@@ -53,8 +55,9 @@ sub Markua2Styles {
     $text = translateEmphasizement($text);
     $text = translateDomainStorytellingEmphasizement($text);
     
-    $text = translatePartText($text);
     $text = translateAsides($text);
+    
+    $text = translatePartText($text);
 
     $text = translateForewordText($text);
     $text = translatePrefaceText($text);
@@ -101,6 +104,27 @@ sub cleanupGermanAbbreviations {
     $text =~ s/u\.[  ]?Ä\./u.&#x202f;Ä./gm;
     $text =~ s/z\.[  ]?B\./z.&#x202f;B./gm;
 
+    return $text;
+}
+
+sub translateSpecialAsides {
+    my $text = shift;
+
+    $text =~ s{(\n\n> 🎬+.*?> 🎬+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
+    $text =~ s{(\n\n> 💰+.*?> 💰+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
+    $text =~ s{(\n\n^> 🚗+.*?> 🚗+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
+    
+    return $text;
+}
+
+sub replaceSpecialExtractsWithAsides {
+    my $text = shift;
+
+    $text =~ s/\n\n> /\n\n\{aside\}\n\n/gm;
+    $text =~ s/> (.*)\n\n/$1\n\n\{\/aside\}\n\n/gm;
+    $text =~ s/^> //gm;
+    $text =~ s/^>$//gm;  # Empty extract lines
+    
     return $text;
 }
 
@@ -168,13 +192,6 @@ sub translateBodyText {
     $text =~ s/(^##+ .*\n+)> (.*)(—.*)$/$1::: {custom-style="$styles{'EPG'}"}\n$2\n:::\n::: {custom-style="$styles{'EPG_ATTR_AU_NA'}"}\n$3\n:::/gm;  # Epigraph with author
     $text =~ s/(^##+ .*\n+)> (.*)$/$1::: {custom-style="$styles{'EPG'}"}\n$2\n:::/gm;  # Epigraph
     # Block Quotations
-    $text =~ s/^> ## (.*)$/::: {custom-style="$styles{'EXT_ONLY_H1'}"}\n$1\n:::/gm;  # Extract head
-    $text =~ s{^> - (.*)$}{::: {custom-style="$styles{'EXT_LIST'}"}\n$1\n:::}gm;  # Lists in extract
-    $text =~ s/^> ?(\|)/$1/gm;       # Tables in extract
-    $text =~ s/^> ?(Table: )/$1/gm;  # Table captions in extract
-    $text =~ s/^> ?(: )/$1/gm;       # Table captions in extract
-        ## TODO: # Figures in extract
-    $text =~ s/^>$//gm;  # Empty extract lines
     $text =~ s/^> (.*)$/::: {custom-style="$styles{'EXT_ONLY'}"}\n$1\n:::/gm;  # Extract
 
 # TODO:
@@ -203,6 +220,7 @@ sub translateLists {
     $text =~ s/\n(\d+\. .*)\n\n?    (.*)\n\n?    (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n::: {custom-style="$styles{'BL_CON'}"}\n$3\n:::\n/gm;
     $text =~ s/\n(\d+\. .*)\n\n?    (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
 ##    $text =~ s/\n(> - .*)\n\n?>     (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
+    # TODO: BL_CON_LAST
     # TODO: BL_CDT
     
     # Bulleted, level 1
@@ -467,8 +485,9 @@ sub translateDomainStorytellingEmphasizement {
 sub translatePartText {
     my $text = shift;
 
-    $text =~ s{(^# [Part|Teil].*?^# [Chapter|Kapitel])}{replaceWithStylesInPart($1)}msge;
-    $text =~ s{(\n# \N*? #\n.*?\n# )}{replaceWithStylesInPart($1)}msge;
+#    $text =~ s{(^# [Part|Teil].*?\n# [Chapter|Kapitel])}{replaceWithStylesInPart($1)}msge;
+    $text =~ s{(\n# [Part|Teil].*?\n# )}{replaceWithStylesInPart($1)}msge;
+#    $text =~ s{(\n# \N*? #\n.*?\n# )}{replaceWithStylesInPart($1)}msge;
 
     return $text;
 }
@@ -531,38 +550,47 @@ sub replaceWithStylesInBox {
     my $text = shift;
 
     # Headings
-    $text =~ s/"H1"/"BX1_TTL"/g;
-    $text =~ s/"H2"/"BX1_H1"/g;
+    $text =~ s/"$styles{'H1'}"/"$styles{'BX1_TTL'}"/g;
+    $text =~ s/"$styles{'H2'}"/"$styles{'BX1_H1'}"/g;
 
     # Paragraphs
-    $text =~ s/"HEADFIRST"/"BX1_FIRST"/g;
-    $text =~ s/"CHAP_BM"/"BX1"/g;
+    $text =~ s/"$styles{'HEADFIRST'}"/"$styles{'BX1_FIRST'}"/g;
+    $text =~ s/"$styles{'CHAP_BM'}"/"$styles{'BX1'}"/g;
 
     # Dialogue
-    $text =~ s/"DLG_FIRST"/"BX1_DLG_FIRST"/g;
-    $text =~ s/"DLG_MID"/"BX1_DLG_MID"/g;
-    $text =~ s/"DLG_LAST"/"BX1_DLG_LAST"/g;
+    $text =~ s/"$styles{'DLG_FIRST'}"/"$styles{'BX1_DLG_FIRST'}"/g;
+    $text =~ s/"$styles{'DLG_MID'}"/"$styles{'BX1_DLG_MID'}"/g;
+    $text =~ s/"$styles{'DLG_LAST'}"/"$styles{'BX1_DLG_LAST'}"/g;
 
     # Equations
-    $text =~ s/"EQ_ONLY"/"BX1_EQ_ONLY"/g;
+    $text =~ s/"$styles{'EQ_ONLY'}"/"$styles{'BX1_EQ_ONLY'}"/g;
 
     # Lists, bulleted
-    #       level 1
-    $text =~ s/::: \{custom-style="BL_FIRST"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_FIRST"}\n[•\]{custom-style="BX1_BL_DING"}\t$1\n:::/gm;
-    $text =~ s/::: \{custom-style="BL_MID"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_MID"}\n[•\]{custom-style="BX1_BL_DING"}\t$1\n:::/gm;
-    $text =~ s/::: \{custom-style="BL_LAST"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_LAST"}\n[•\]{custom-style="BX1_BL_DING"}\t$1\n:::/gm;
-    $text =~ s/::: \{custom-style="BL_CON"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_CON"}\t$1\n:::/gm;
-    $text =~ s/::: \{custom-style="BL_CON_LAST"\}\n(.*?)\n:::/::: {custom-style="BX1_BL_CON_LAST"}\t$1\n:::/gm;
+    unless ($settings{'bullets_have_their_own_style'}) {
+        #       level 1
+        $text =~ s/"$styles{'BL_FIRST'}"/"$styles{'BX1_BL_FIRST'}"/g;
+        $text =~ s/"$styles{'BL_MID'}"/"$styles{'BX1_BL_MID'}"/g;
+        $text =~ s/"$styles{'BL_LAST'}"/"$styles{'BX1_BL_LAST'}"/g;
+        $text =~ s/"$styles{'BL_CON'}"/"$styles{'BX1_BL_CON'}"/g;
+#        $text =~ s/"$styles{'BL_CON_LAST'}"/"$styles{'BX1_BL_CON_LAST'}/g;
+    } else {
+        #       level 1
+        $text =~ s/::: \{custom-style="$styles{'BL_FIRST'}"\}\n(.*?)\n:::/::: {custom-style="$styles{'BX1_BL_FIRST'}"}\n[$settings{'bullet_in_box_level_1'}\]{custom-style="$styles{'BX1_BL_DING'}"}\t$1\n:::/gm;
+        $text =~ s/::: \{custom-style="$styles{'BL_MID'}"\}\n(.*?)\n:::/::: {custom-style="$styles{'BX1_BL_MID'}"}\n[$settings{'bullet_in_box_level_1'}\]{custom-style="$styles{'BX1_BL_DING'}"}\t$1\n:::/gm;
+        $text =~ s/::: \{custom-style="$styles{'BL_LAST'}"\}\n(.*?)\n:::/::: {custom-style="$styles{'BX1_BL_LAST'}"}\n[$settings{'bullet_in_box_level_1'}\]{custom-style="$styles{'BX1_BL_DING'}"}\t$1\n:::/gm;
+        $text =~ s/::: \{custom-style="$styles{'BL_CON'}"\}\n(.*?)\n:::/::: {custom-style="$styles{'BX1_BL_CON'}"}\n$1\n:::/gm;
+#        $text =~ s/::: \{custom-style="$styles{'BL_CON_LAST'}"\}\n(.*?)\n:::/::: {custom-style="$styles{'BX1_BL_CON_LAST'}"}\n$1\n:::/gm;
+    }
 
     # Lists, numbered
     #       level 1
-    $text =~ s/"NL_FIRST"/"BX1_NL_FIRST"/g;
-    $text =~ s/"NL_MID"/"BX1_NL_MID"/g;
-    $text =~ s/"NL_LAST"/"BX1_NL_LAST"/g;
+    $text =~ s/"$styles{'NL_FIRST'}"/"$styles{'BX1_NL_FIRST'}"/g;
+    $text =~ s/"$styles{'NL_MID'}"/"$styles{'BX1_NL_MID'}"/g;
+    $text =~ s/"$styles{'NL_LAST'}"/"$styles{'BX1_NL_LAST'}"/g;
 
     # Figures
-    $text =~ s/"FIG_TTL"/"BX1_FIG_TTL"/g;
-    $text =~ s/"FIG_NUM"/"BX1_FIG_NUM"/g;
+    $text =~ s/"$styles{'FIG_TTL'}"/"$styles{'BX1_FIG_TTL'}"/g;
+    $text =~ s/"$styles{'FIG_NUM'}"/"$styles{'BX1_FIG_NUM'}"/g;
 
     return $text;
 }

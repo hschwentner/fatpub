@@ -32,6 +32,7 @@ my %settings = (
 	bullets_have_their_own_style => 1, 	# 1 == true
 	bullet_level_2 => '○',              # for BL_BL_DING
 	bullet_level_3 => '•',    			# for BL_BL_BL_DING
+	bullet_in_box_level_1 => '•',    	# for BX1_BL_DING
 );
 
 # Define Styles to be used
@@ -126,7 +127,26 @@ my %styles = (
 	SF2_TTL => 'SF2_TTL',
 	SF2_FIRST => 'SF2_FIRST',
 
-# TODO: Asides and boxes
+    # Asides and boxes
+    BX1_TTL => 'BX1_TTL',
+    BX1_H1 => 'BX1_H1',
+    BX1_FIRST => 'BX1_FIRST',
+    BX1 => 'BX1',
+    BX1_DLG_FIRST => 'BX1_DLG_FIRST',
+    BX1_DLG_MID => 'BX1_DLG_MID',
+    BX1_DLG_LAST => 'BX1_DLG_LAST',
+    BX1_EQ_ONLY => 'BX1_EQ_ONLY',
+    BX1_BL_FIRST => 'BX1_BL_FIRST',
+    BX1_BL_MID => 'BX1_BL_MID',
+    BX1_BL_LAST => 'BX1_BL_LAST',
+	BX1_BL_DING => 'BX1_BL_DING',
+    BX1_BL_CON => 'BX1_BL_CON',
+    BX1_BL_CON_LAST => 'BX1_BL_CON_LAST',
+	BX1_NL_FIRST => 'BX1_NL_FIRST',
+    BX1_NL_MID => 'BX1_NL_MID',
+    BX1_NL_LAST => 'BX1_NL_LAST',
+	BX1_FIG_TTL => 'BX1_FIG_TTL',
+    BX1_FIG_NUM => 'BX1_FIG_NUM',
 
 	# Praise
 	BKFM_PP => 'BKFM_PP',
