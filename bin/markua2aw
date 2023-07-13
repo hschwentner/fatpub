@@ -95,9 +95,7 @@ my %styles = (
 	CF_EPG_ATTR_AU_NA => 'CF_EPG_ATTR_AU_NA',
 	EPG => 'EPG',
 	EPG_ATTR_AU_NA => 'EPG_ATTR_AU_NA',
-	EXT_ONLY_H1 => 'EXT_ONLY_H1', 		#TOOD: not existing??
 	EXT_ONLY => 'EXT_ONLY',
-	EXT_LIST => 'EXT_LIST', 			#TOOD: not existing??
 
 	# Dialogue
 	DLG_FIRST => 'DLG_FIRST',

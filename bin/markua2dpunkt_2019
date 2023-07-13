@@ -100,9 +100,7 @@ my %styles = (
 	CF_EPG_ATTR_AU_NA => 'Zitat_Autor',
 	EPG => 'Zitat',
 	EPG_ATTR_AU_NA => 'Zitat_Autor',
-	EXT_ONLY_H1 => 'Merksatz-Head',
 	EXT_ONLY => 'Merksatz',
-	EXT_LIST => 'Merksatz-Liste',
 	
 	# Dialogue
 	DLG_FIRST => 'DLG_FIRST',
