@@ -110,9 +110,10 @@ sub cleanupGermanAbbreviations {
 sub translateSpecialAsides {
     my $text = shift;
 
+    $text =~ s{(\n\n> 🌹+.*?> 🌹+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
     $text =~ s{(\n\n> 🎬+.*?> 🎬+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
     $text =~ s{(\n\n> 💰+.*?> 💰+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
-    $text =~ s{(\n\n^> 🚗+.*?> 🚗+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
+    $text =~ s{(\n\n> 🚗+.*?> 🚗+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
     
     return $text;
 }
@@ -485,9 +486,9 @@ sub translateDomainStorytellingEmphasizement {
 sub translatePartText {
     my $text = shift;
 
-#    $text =~ s{(^# [Part|Teil].*?\n# [Chapter|Kapitel])}{replaceWithStylesInPart($1)}msge;
-    $text =~ s{(\n# [Part|Teil].*?\n# )}{replaceWithStylesInPart($1)}msge;
-#    $text =~ s{(\n# \N*? #\n.*?\n# )}{replaceWithStylesInPart($1)}msge;
+    $text =~ s{(\n# Part.*?\n# )}{replaceWithStylesInPart($1)}msge;
+    $text =~ s{(\n# Teil.*?\n# )}{replaceWithStylesInPart($1)}msge;
+    $text =~ s{(\n# \N*? #\n.*?\n# )}{replaceWithStylesInPart($1)}msge;
 
     return $text;
 }
