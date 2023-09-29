@@ -15,7 +15,7 @@
 
 package Markua2Styles;
 
-use v5.36;
+use v5.38;
 use warnings;
 use autodie;
 
@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.16';
+our $VERSION = '1.17';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
