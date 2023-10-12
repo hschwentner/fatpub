@@ -46,6 +46,7 @@ sub Markua2Styles {
     $text = translateFrontmatter($text);
     $text = translateBackmatter($text);
 
+    $text = translateTables($text);
     $text = translateSourceCode($text);
     $text = translateBodyText($text);
     $text = translateSubHeadings($text);
@@ -266,6 +267,24 @@ sub translateLists {
         $text =~ s/\n    (\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      
         $text =~ s/^    ([2-9]\.) (.*)$/::: {custom-style="$styles{'NL_NL_MID'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;      
     }
+
+    return $text;
+}
+
+sub translateTables {
+    my $text = shift;
+
+    # Tables in extract like normal tables
+    $text =~ s/^> ?(|)/$1/gm;      
+    $text =~ s/^> ?(Table: )/$1/gm;  # Table captions in extract like normal table captions
+    $text =~ s/^> ?(Table|Tabelle|Tab\.[ | ][0-9IVX\.\-]+: )/$1/gm;  # Table captions in extract like normal table captions
+
+    # Table captions
+#    $text =~ s/^Table: (.*)$/: $1/gm;
+    $text =~ s/^(Table|Tabelle|Tab\.)[ | ]([0-9IVX\.\-]+): (.*?) *({#.*})$/::: {custom-style="$styles{'TBL_TTL'}"}\n[$1 $2]{custom-style="$styles{'TBL_NUM'}"} $3$4\n:::/gm;
+
+    # Hack for table links. May interfere with pandoc-crossref.
+    $text =~ s/\[\@tbl:([0-9IVX\.\-]+?)-(.*?)\]/[Table $1](#tbl:$1$2)/gm;
 
     return $text;
 }
@@ -519,12 +538,12 @@ sub replaceWithStylesInPart {
     $text =~ s/"$styles{'FIG_TTL'}"/"$styles{'PART_FIG_TTL'}"/g;
     $text =~ s/"$styles{'FIG_NUM'}"/"$styles{'PART_FIG_NUM'}"/g;
 
+    # Tables
 # TODO:
-#    # Tables
 #    $text =~ s/"$styles{'TBL'}"/"$styles{'PART_TBL'}"/g;
 #    $text =~ s/"$styles{'TBL_COLHD'}"/"$styles{'PART_TBL_COLHD'}"/g;
-#    $text =~ s/"$styles{'TBL_TTL'}"/"$styles{'PART_TBL_TTL'}"/g;
-#    $text =~ s/"$styles{'TBL_NUM'}"/"$styles{'PART_TBL_NUM'}"/g;
+    $text =~ s/"$styles{'TBL_TTL'}"/"$styles{'PART_TBL_TTL'}"/g;
+    $text =~ s/"$styles{'TBL_NUM'}"/"$styles{'PART_TBL_NUM'}"/g;
 
     return $text;
 }
@@ -655,12 +674,12 @@ sub replaceWithStylesInPreface {
     $text =~ s/"CDT_MID"/"BKFM_PREF_CDT_MID"/g;
     $text =~ s/"CDT_LAST"/"BKFM_PREF_CDT_LAST"/g;
 
+    # Tables
 # TODO:
-#    # Tables
 #    $text =~ s/"TBL"/"BKFM_PREF_TBL"/g;
 #    $text =~ s/"TBL_COLHD"/"BKFM_PREF_TBL_COLHD"/g;
-#    $text =~ s/"TBL_TTL"/"BKFM_PREF_TBL_TTL"/g;
-#    $text =~ s/"TBL_NUM"/"BKFM_PREF_TBL_NUM"/g;
+    $text =~ s/"TBL_TTL"/"BKFM_PREF_TBL_TTL"/g;
+    $text =~ s/"TBL_NUM"/"BKFM_PREF_TBL_NUM"/g;
 
     return $text;
 }

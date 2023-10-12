@@ -82,6 +82,10 @@ my %styles = (
 	NL_NL_MID => 'NL_NL_MID',
 	NL_NL_LAST => 'NL_NL_LAST',
 
+	# Tables
+	TBL_TTL => 'TBL_TTL',
+	TBL_NUM => 'TBL_NUM',
+
 	# Images and figures
 	ARTLIST => 'artlist',
 	FIG_TTL => 'FIG_TTL',

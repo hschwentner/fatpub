@@ -81,6 +81,10 @@ my %styles = (
 	NL_NL_MID => 'Liste_a_Folge',
 	NL_NL_LAST => 'Liste_a_Folge',
 
+	# Tables
+	TBL_TTL => 'TBL_TTL',
+	TBL_NUM => 'TBL_NUM',
+
 	# Images and figures
 	ARTLIST => 'Haupttext_Folge',
 	FIG_TTL => 'Marginal-Abb.',

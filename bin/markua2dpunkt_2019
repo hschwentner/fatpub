@@ -87,6 +87,10 @@ my %styles = (
 	NL_NL_LAST => 'Liste-Abc',
 	#TODO: Liste-Folgeabsatz
 
+	# Tables
+	TBL_TTL => 'TBL_TTL',
+	TBL_NUM => 'TBL_NUM',
+
 	# Images and figures
 	ARTLIST => 'Standard-Folge',
 	FIG_TTL => 'Beschriftung',
