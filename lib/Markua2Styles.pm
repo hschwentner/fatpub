@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.18';
+our $VERSION = '1.19';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
@@ -275,7 +275,7 @@ sub translateTables {
     my $text = shift;
 
     # Tables in extract like normal tables
-    $text =~ s/^> ?(|)/$1/gm;      
+    $text =~ s/^> ?(\|)/$1/gm;      
     $text =~ s/^> ?(Table: )/$1/gm;  # Table captions in extract like normal table captions
     $text =~ s/^> ?(Table|Tabelle|Tab\.[ | ][0-9IVX\.\-]+: )/$1/gm;  # Table captions in extract like normal table captions
 
