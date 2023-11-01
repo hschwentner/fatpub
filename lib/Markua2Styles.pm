@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.19';
+our $VERSION = '1.20';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
