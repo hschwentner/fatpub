@@ -129,10 +129,10 @@ my %styles = (
 	DT_ITAL => '_kursiv',
 
 	# Tips and notes
-	SF1_TTL => 'SF1_TTL',
-	SF1_FIRST => 'SF1_FIRST',
-	SF2_TTL => 'SF2_TTL',
-	SF2_FIRST => 'SF2_FIRST',
+	SF1_TTL => 'Merksatz-Head',
+	SF1_FIRST => 'Merksatz',
+	SF2_TTL => 'Merksatz-Head',
+	SF2_FIRST => 'Merksatz',
 
     # Asides and boxes
     BX1_TTL => 'Merksatz-Head',

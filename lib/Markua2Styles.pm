@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2023  Henning Schwentner
+# Copyright (C) 2020-2026  Henning Schwentner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 
 package Markua2Styles;
 
-use v5.38;
+use v5.42;
 use warnings;
 use autodie;
 
@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.20';
+our $VERSION = '1.21';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
@@ -111,7 +111,10 @@ sub cleanupGermanAbbreviations {
 sub translateSpecialAsides {
     my $text = shift;
 
+    $text =~ s{(\n\nA>.*?A>[^\n]*\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
     $text =~ s{(\n\n> 🌹+.*?> 🌹+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
+    $text =~ s{(\n\n> 🦋+.*?> 🦋+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
+    $text =~ s{(\n\n> (?:🚢🏗️📦)+.*?> (?:🚢🏗️📦)+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
     $text =~ s{(\n\n> 🎬+.*?> 🎬+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
     $text =~ s{(\n\n> 💰+.*?> 💰+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
     $text =~ s{(\n\n> 🚗+.*?> 🚗+\n\n)}{replaceSpecialExtractsWithAsides($1)}msge;
@@ -122,6 +125,7 @@ sub translateSpecialAsides {
 sub replaceSpecialExtractsWithAsides {
     my $text = shift;
 
+    $text =~ s/A>/>/gm;
     $text =~ s/\n\n> /\n\n\{aside\}\n\n/gm;
     $text =~ s/> (.*)\n\n/$1\n\n\{\/aside\}\n\n/gm;
     $text =~ s/^> //gm;
@@ -172,9 +176,10 @@ sub translateBodyText {
     $text =~ s/(\n(?!\*{4}).*\n\n+)\*{4}(.*?:)\*{4}(.*?)\n/$1::: {custom-style="$styles{'DLG_FIRST'}"}\n[$2]{custom-style="$styles{'DLG_SPKR'}"} $3\n:::\n/g;
     $text =~ s/\n\*{4}(.*?:)\*{4}(.*?)(\n\n+(?!\*{4}).*\n)/\n::: {custom-style="$styles{'DLG_LAST'}"}\n[$1]{custom-style="$styles{'DLG_SPKR'}"} $2\n:::$3/g;
     $text =~ s/^\*{4}(.*?:)\*{4}(.*)$/::: {custom-style="$styles{'DLG_MID'}"}\n[$1]{custom-style="$styles{'DLG_SPKR'}"} $2\n:::/gm;
-    # Tips, Notes
-    $text =~ s/^I> (.*)$/::: {custom-style="$styles{'SF1_TTL'}"}\nNote\n:::\n::: {custom-style="$styles{'SF1_FIRST'}"}\n$1\n:::/gm;
-    $text =~ s/^T> (.*)$/::: {custom-style="$styles{'SF2_TTL'}"}\nTip\n:::\n::: {custom-style="$styles{'SF2_FIRST'}"}\n$1\n:::/gm;
+    # Tips, Notes, Warnings
+    $text =~ s/^I> (.*)$/::: {custom-style="$styles{'SF1_TTL'}"}\nNOTE\n:::\n::: {custom-style="$styles{'SF1_FIRST'}"}\n$1\n:::/gm;
+    $text =~ s/^T> (.*)$/::: {custom-style="$styles{'SF2_TTL'}"}\nTIP\n:::\n::: {custom-style="$styles{'SF2_FIRST'}"}\n$1\n:::/gm;
+    $text =~ s/^W> (.*)$/::: {custom-style="$styles{'SF2_TTL'}"}\nWARNING\n:::\n::: {custom-style="$styles{'SF2_FIRST'}"}\n$1\n:::/gm;
     # Paragraphs, first after heading
     $text =~ s/((?:^|\n)#.*(?:\n+>.*)?(?:\n+\!.*)?)\n\n+($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'HEADFIRST'}"}\n$2\n:::\n\n/gm; # First paragraph after heading with optional epigraph and optional opening picture
     $text =~ s/((?:^|\n)#.*(?:\n+\!.*)?)\n\n+($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'HEADFIRST'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
