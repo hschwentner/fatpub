@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Read $VERSION from lib/Markua2Styles.pm
+        id: version
+        run: |
+          VERSION=$(grep -m1 'VERSION' lib/Markua2Styles.pm | sed -E "s/.*VERSION[[:space:]]*=[[:space:]]*'([0-9.]+)'.*/\1/")
+          if [ -z "$VERSION" ]; then
+            echo "Could not find \$VERSION in lib/Markua2Styles.pm" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check that the tag doesn't already exist
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "Tag ${{ steps.version.outputs.tag }} already exists. Bump \$VERSION in lib/Markua2Styles.pm first." >&2
+            exit 1
+          fi
+
+      - name: Create and push tag
+        run: |
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: Draft a GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --draft \
+            --generate-notes
