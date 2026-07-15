@@ -80,6 +80,12 @@ my %styles = (
 	NL_NL_FIRST => 'Liste_a_Anfang',
 	NL_NL_MID => 'Liste_a_Folge',
 	NL_NL_LAST => 'Liste_a_Folge',
+	DL_TERM => '_fett',
+	DL_DEF => 'Liste-Square',
+	DL_DEF_CON => 'Liste-Folgeabsatz',
+	DL_DL_TERM => '_fett',
+	DL_DL_DEF => 'Liste-Strich',
+	DL_DL_DEF_CON => 'List Paragraph',
 
 	# Tables
 	TBL_TTL => 'TBL_TTL',

@@ -86,6 +86,12 @@ my %styles = (
 	NL_NL_MID => 'Liste-Abc',
 	NL_NL_LAST => 'Liste-Abc',
 	#TODO: Liste-Folgeabsatz
+	DL_TERM => '_fett',
+	DL_DEF => 'Liste-Square',
+	DL_DEF_CON => 'Liste-Folgeabsatz',
+	DL_DL_TERM => '_fett',
+	DL_DL_DEF => 'Liste-Strich',
+	DL_DL_DEF_CON => 'List Paragraph',
 
 	# Tables
 	TBL_TTL => 'TBL_TTL',

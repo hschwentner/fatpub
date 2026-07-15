@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.21';
+our $VERSION = '1.22';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
@@ -48,6 +48,7 @@ sub Markua2Styles {
 
     $text = translateTables($text);
     $text = translateSourceCode($text);
+    $text = translateDefinitionLists($text);
     $text = translateBodyText($text);
     $text = translateSubHeadings($text);
     $text = translateFigures($text);
@@ -168,6 +169,129 @@ sub translateBackmatter {
 
 our $PARAGRAPH_START = '[\[\*]*[A-ZÄÖÜa-z“„»@]';
 
+# Has to be called before translateBodyText(), otherwise the generic
+# paragraph-wrapping regex there grabs the term line first
+sub translateDefinitionLists {
+    my $text = shift;
+
+    # Nested definition lists (indented by two spaces, one level deep) have to
+    # be converted first: they get turned into ordinary ::: divs, which the
+    # top-level pass below then just passes through unchanged as part of the
+    # outer term's definition. They never have children of their own, so they
+    # don't need to look out for already-rendered ::: blocks.
+    $text = replaceDefinitionListsToFixpoint($text, 2, 'DL_DL_TERM', 'DL_DL_DEF', 'DL_DL_DEF_CON', 0);
+
+    # Definition lists (supports multiple definitions and continuation
+    # paragraphs, and passes through any nested ::: divs from the pass above).
+    $text = replaceDefinitionListsToFixpoint($text, 0, 'DL_TERM', 'DL_DEF', 'DL_DEF_CON', 1);
+
+    return $text;
+}
+
+# A matched definition list consumes the blank line separating it from the
+# next one (and, if it swallows a nested block, from the one after that too),
+# so consecutive definition lists only match some of them per pass. Applying
+# the substitution repeatedly until it stops changing anything converges on
+# all of them, regardless of how many are chained together.
+sub replaceDefinitionListsToFixpoint {
+    my ($text, $indent, $term_style_key, $def_style_key, $def_con_style_key, $allow_children) = @_;
+
+    while (1) {
+        my $new_text = replaceDefinitionLists($text, $indent, $term_style_key, $def_style_key, $def_con_style_key, $allow_children);
+        last if $new_text eq $text;
+        $text = $new_text;
+    }
+
+    return $text;
+}
+
+sub replaceDefinitionLists {
+    my ($text, $indent, $term_style_key, $def_style_key, $def_con_style_key, $allow_children) = @_;
+    my $pad = ' ' x $indent;
+
+    # Terms are either normal paragraph starts, numbered terms like
+    # "&#x31;. Brainstorming" (an escaped "1." used to avoid Pandoc's
+    # automatic numbered-list handling), or terms starting with "%" (e.g.
+    # metric names like "%-Anteil Klassen und Pakete in Zyklen").
+    my $term_start = qr/(?:$PARAGRAPH_START|&\#x3[0-9];\.|%)/;
+
+    # Only the top-level pass needs to look out for already-rendered nested
+    # ::: divs (produced by the deeper pass) and pass them through as-is.
+    my $children_clause = $allow_children ? q{
+                (?:[ \t]*\n(?=:::))?
+                (?:
+                    :::.*\n
+                    (?:(?!:::).*\n)*
+                    :::\n
+                    (?:[ \t]*\n(?=:::))?
+                )*
+    } : '';
+
+    $text =~ s{
+        \n\n\Q$pad\E($term_start.*)\n
+        \n?
+        (
+            (?:
+                \Q$pad\E:(?!:)[ \t]*.*\n
+                (?:
+                    \Q$pad\E[ \t]{2,}.*\n
+                  | [ \t]*\n(?=\Q$pad\E[ \t]{2,}.*\n|\Q$pad\E:(?!:))
+                )*
+            )+
+            $children_clause
+        )
+        \n*
+    }{
+        my $term = $1;
+        my $defs_block = $2;
+
+        # Split off any already-rendered nested definition lists (::: divs
+        # produced by an earlier, deeper pass): they are passed through as-is.
+        my @block_lines = split /\n/, $defs_block, -1;
+        my $raw_start;
+        if ($allow_children) {
+            for my $i (0 .. $#block_lines) {
+                if ($block_lines[$i] =~ /^:::/) {
+                    $raw_start = $i;
+                    last;
+                }
+            }
+        }
+        my $leading_lines = defined $raw_start ? join("\n", @block_lines[0 .. $raw_start - 1]) : $defs_block;
+        my $raw_lines = defined $raw_start ? join("\n", @block_lines[$raw_start .. $#block_lines]) : '';
+        $raw_lines =~ s/\n+$//;
+
+        my @defs;
+        my $current = '';
+
+        for my $line (split /\n/, $leading_lines) {
+            my $stripped = $line;
+            $stripped =~ s/^\Q$pad\E// if length $pad;
+            if ($stripped =~ /^:(?!:)[ \t]*(.*)$/) {
+                push @defs, $current if length $current;
+                $current = $1;
+            } elsif ($stripped =~ /^(?:[ \t]{2,}|\t)(.*)$/) {
+                push @defs, $current if length $current;
+                $current = $1;
+            } elsif ($stripped =~ /^[ \t]*$/) {
+                # Blank line: end of the current paragraph within this definition
+                push @defs, $current if length $current;
+                $current = '';
+            } else {
+                $current .= "\n$stripped";
+            }
+        }
+        push @defs, $current if length $current;
+
+        my $out = "\n\n::: {custom-style=\"$styles{$def_style_key}\"}\n[$term]{custom-style=\"$styles{$term_style_key}\"}\n:::\n";
+        $out .= join '', map { "::: {custom-style=\"$styles{$def_con_style_key}\"}\n$_\n:::\n" } @defs;
+        $out .= "$raw_lines\n" if length $raw_lines;
+        $out . "\n";
+    }gmex;
+
+    return $text;
+}
+
 # Has to be called before translateSubHeadings() to determine first paragraphs
 sub translateBodyText {
     my $text = shift;
@@ -229,7 +353,7 @@ sub translateLists {
 ##    $text =~ s/\n(> - .*)\n\n?>     (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
     # TODO: BL_CON_LAST
     # TODO: BL_CDT
-    
+
     # Bulleted, level 1
     $text =~ s/\n\n- (.*)\n/\n\n::: {custom-style="$styles{'BL_FIRST'}"}\n$1\n:::\n/gm;
     $text =~ s/\n- (.*)\n\n/\n::: {custom-style="$styles{'BL_LAST'}"}\n$1\n:::\n\n/gm;

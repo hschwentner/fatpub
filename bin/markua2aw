@@ -81,6 +81,12 @@ my %styles = (
 	NL_NL_FIRST => 'NL_NL_FIRST',
 	NL_NL_MID => 'NL_NL_MID',
 	NL_NL_LAST => 'NL_NL_LAST',
+	DL_TERM => 'BOLD',
+	DL_DEF => 'BL_MID',
+	DL_DEF_CON => 'BL_CON',
+	DL_DL_TERM => 'BOLD',
+	DL_DL_DEF => 'BL_BL_MID',
+	DL_DL_DEF_CON => 'BL_CON',
 
 	# Tables
 	TBL_TTL => 'TBL_TTL',
