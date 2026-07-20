@@ -33,6 +33,11 @@ my %settings = (
 	bullet_level_2 => '○',              # for BL_BL_DING
 	bullet_level_3 => '•',    			# for BL_BL_BL_DING
 	bullet_in_box_level_1 => '•',    	# for BX1_BL_DING
+
+	# Callout titles (I>/T>/W>)
+	note_title => 'NOTE',
+	tip_title => 'TIP',
+	warning_title => 'WARNING',
 );
 
 # Define Styles to be used

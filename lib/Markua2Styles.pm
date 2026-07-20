@@ -169,6 +169,11 @@ sub translateBackmatter {
 
 our $PARAGRAPH_START = '[\[\*]*[A-ZÄÖÜa-z“„»@]';
 
+# A bare, unnumbered native table caption (`Table: Caption {#tbl:...}`) must stay
+# adjacent to its table for pandoc-crossref to recognize it; the generic
+# paragraph-wrapping rules below must not swallow it into a styled div first.
+our $NATIVE_TABLE_CAPTION = 'Table: .*\{#tbl:';
+
 # Has to be called before translateBodyText(), otherwise the generic
 # paragraph-wrapping regex there grabs the term line first
 sub translateDefinitionLists {
@@ -301,23 +306,24 @@ sub translateBodyText {
     $text =~ s/\n\*{4}(.*?:)\*{4}(.*?)(\n\n+(?!\*{4}).*\n)/\n::: {custom-style="$styles{'DLG_LAST'}"}\n[$1]{custom-style="$styles{'DLG_SPKR'}"} $2\n:::$3/g;
     $text =~ s/^\*{4}(.*?:)\*{4}(.*)$/::: {custom-style="$styles{'DLG_MID'}"}\n[$1]{custom-style="$styles{'DLG_SPKR'}"} $2\n:::/gm;
     # Tips, Notes, Warnings
-    $text =~ s/^I> (.*)$/::: {custom-style="$styles{'SF1_TTL'}"}\nNOTE\n:::\n::: {custom-style="$styles{'SF1_FIRST'}"}\n$1\n:::/gm;
-    $text =~ s/^T> (.*)$/::: {custom-style="$styles{'SF2_TTL'}"}\nTIP\n:::\n::: {custom-style="$styles{'SF2_FIRST'}"}\n$1\n:::/gm;
-    $text =~ s/^W> (.*)$/::: {custom-style="$styles{'SF2_TTL'}"}\nWARNING\n:::\n::: {custom-style="$styles{'SF2_FIRST'}"}\n$1\n:::/gm;
+    # (block-wise: a callout may span several paragraphs, written as consecutive
+    #  I>/T>/W> lines with bare I>/T>/W> lines as paragraph separators —
+    #  emit the NOTE/TIP/WARNING title only once per block)
+    $text =~ s{^([ITW])> .*(?:\n\1>(?: .*)?)*$}{translateCallout($&)}gme;
     # Paragraphs, first after heading
-    $text =~ s/((?:^|\n)#.*(?:\n+>.*)?(?:\n+\!.*)?)\n\n+($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'HEADFIRST'}"}\n$2\n:::\n\n/gm; # First paragraph after heading with optional epigraph and optional opening picture
-    $text =~ s/((?:^|\n)#.*(?:\n+\!.*)?)\n\n+($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'HEADFIRST'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
+    $text =~ s/((?:^|\n)#.*(?:\n+>.*)?(?:\n+\!.*)?)\n\n+(?!$NATIVE_TABLE_CAPTION)($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'HEADFIRST'}"}\n$2\n:::\n\n/gm; # First paragraph after heading with optional epigraph and optional opening picture
+    $text =~ s/((?:^|\n)#.*(?:\n+\!.*)?)\n\n+(?!$NATIVE_TABLE_CAPTION)($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'HEADFIRST'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
     # Paragraphs, first after list
-    $text =~ s/(^ *- .*)\n\n+($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # First paragraph after bulleted list
-    $text =~ s/(^ *- .*)\n\n+($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
-    $text =~ s/(^ *\d+\. .*)\n\n+($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # First paragraph after numbered list
-    $text =~ s/(^ *\d+\. .*)\n\n+($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
+    $text =~ s/(^ *- .*)\n\n+(?!$NATIVE_TABLE_CAPTION)($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # First paragraph after bulleted list
+    $text =~ s/(^ *- .*)\n\n+(?!$NATIVE_TABLE_CAPTION)($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
+    $text =~ s/(^ *\d+\. .*)\n\n+(?!$NATIVE_TABLE_CAPTION)($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # First paragraph after numbered list
+    $text =~ s/(^ *\d+\. .*)\n\n+(?!$NATIVE_TABLE_CAPTION)($PARAGRAPH_START.*)\n+/$1\n\n::: {custom-style="$styles{'paragraph_first_after_list'}"}\n$2\n:::\n\n/gm; # Doppelt für gerade Absatznummer
     # Paragraphs, first after figure
     # Paragraphs, first after quote
     # Paragraphs, first after table
     # Paragraphs, normal
-    $text =~ s/\n\n($PARAGRAPH_START.*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # einmal für ungerade Absatznummer
-    $text =~ s/\n\n($PARAGRAPH_START.*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # Doppelt für Gerade Absatznummer
+    $text =~ s/\n\n(?!$NATIVE_TABLE_CAPTION)($PARAGRAPH_START.*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # einmal für ungerade Absatznummer
+    $text =~ s/\n\n(?!$NATIVE_TABLE_CAPTION)($PARAGRAPH_START.*)\n+/\n\n::: {custom-style="$styles{'CHAP_BM'}"}\n$1\n:::\n\n/gm;  # Doppelt für Gerade Absatznummer
     # Epigraphs
     $text =~ s/(^# .*\n+)> (.*)(—.*)$/$1::: {custom-style="$styles{'CF_EPG_FIRST'}"}\n$2\n:::\n::: {custom-style="$styles{'CF_EPG_ATTR_AU_NA'}"}\n$3\n:::\n/gm; # Opening epigraph
     $text =~ s/(^##+ .*\n+)> (.*)(—.*)$/$1::: {custom-style="$styles{'EPG'}"}\n$2\n:::\n::: {custom-style="$styles{'EPG_ATTR_AU_NA'}"}\n$3\n:::/gm;  # Epigraph with author
@@ -342,14 +348,34 @@ sub translateSubHeadings {
     return $text;
 }
 
+sub translateCallout {
+    my $block = shift;
+    my ($letter) = $block =~ /^([ITW])>/;
+    my %title       = (I => $settings{'note_title'} // 'NOTE',
+                        T => $settings{'tip_title'} // 'TIP',
+                        W => $settings{'warning_title'} // 'WARNING');
+    my %title_style = (I => $styles{'SF1_TTL'},  T => $styles{'SF2_TTL'},  W => $styles{'SF2_TTL'});
+    my %para_style  = (I => $styles{'SF1_FIRST'},T => $styles{'SF2_FIRST'},W => $styles{'SF2_FIRST'});
+
+    $block =~ s/^[ITW]> ?//gm;   # strip prefixes; bare separator lines become empty lines
+
+    my $out = qq{::: {custom-style="$title_style{$letter}"}\n$title{$letter}\n:::};
+    for my $paragraph (split /\n\s*\n/, $block) {
+        $out .= qq{\n::: {custom-style="$para_style{$letter}"}\n$paragraph\n:::};
+    }
+    return $out;
+}
+
 sub translateLists {
     my ($text) = @_;
 
     # Following paragraph in lists
-    $text =~ s/\n(- .*)\n\n?    (.*)\n\n?    (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n::: {custom-style="$styles{'BL_CON'}"}\n$3\n:::\n/gm;
-    $text =~ s/\n(- .*)\n\n?    (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
-    $text =~ s/\n(\d+\. .*)\n\n?    (.*)\n\n?    (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n::: {custom-style="$styles{'BL_CON'}"}\n$3\n:::\n/gm;
-    $text =~ s/\n(\d+\. .*)\n\n?    (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
+    # (3 or 4 spaces of indentation: extracts converted to asides lose one space of indentation,
+    # because "> " is stripped, so continuation paragraphs in boxes arrive with only 3 spaces)
+    $text =~ s/\n(- .*)\n\n? {3,4}(\S.*)\n\n? {3,4}(\S.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n::: {custom-style="$styles{'BL_CON'}"}\n$3\n:::\n/gm;
+    $text =~ s/\n(- .*)\n\n? {3,4}(\S.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
+    $text =~ s/\n(\d+\. .*)\n\n? {3,4}(\S.*)\n\n? {3,4}(\S.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n::: {custom-style="$styles{'BL_CON'}"}\n$3\n:::\n/gm;
+    $text =~ s/\n(\d+\. .*)\n\n? {3,4}(\S.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
 ##    $text =~ s/\n(> - .*)\n\n?>     (.*)/\n$1\n::: {custom-style="$styles{'BL_CON'}"}\n$2\n:::\n/gm;
     # TODO: BL_CON_LAST
     # TODO: BL_CDT
@@ -410,10 +436,8 @@ sub translateTables {
 
     # Table captions
 #    $text =~ s/^Table: (.*)$/: $1/gm;
-    $text =~ s/^(Table|Tabelle|Tab\.)[ | ]([0-9IVX\.\-]+): (.*?) *({#.*})$/::: {custom-style="$styles{'TBL_TTL'}"}\n[$1 $2]{custom-style="$styles{'TBL_NUM'}"} $3$4\n:::/gm;
+    $text =~ s/^(Table|Tabelle|Tab\.)[ | ]([0-9IVX\.\-]+): (.*?) *\{(#.*)\}$/::: {$4 custom-style="$styles{'TBL_TTL'}"}\n[$1 $2]{custom-style="$styles{'TBL_NUM'}"} $3\n:::/gm;
 
-    # Hack for table links. May interfere with pandoc-crossref.
-    $text =~ s/\[\@tbl:([0-9IVX\.\-]+?)-(.*?)\]/[Table $1](#tbl:$1$2)/gm;
 
     return $text;
 }
