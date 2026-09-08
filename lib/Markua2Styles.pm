@@ -985,13 +985,15 @@ sub translateLevelOneHeadings {
 sub removeMarkupForStandardStyles {
     my $text = shift;
 
-# TODO: Add English variants
-
-    $text =~ s{^::: \{custom-style="Standard"\}\n(.*?)\n:::}{$1}msg;
-    $text =~ s{^::: \{custom-style="Überschrift 1"\}\n(.*?)\n:::}{# $1}msg;
-    $text =~ s{^::: \{custom-style="Überschrift 2"\}\n(.*?)\n:::}{## $1}msg;
-    $text =~ s{^::: \{custom-style="Überschrift 3"\}\n(.*?)\n:::}{### $1}msg;
-    $text =~ s{^::: \{custom-style="Überschrift 4"\}\n(.*?)\n:::}{#### $1}msg;
+    # Styles that Pandoc handles natively are unwrapped again, so that e.g. the
+    # {#sec:...} labels stay on real headings. The names come from the template's
+    # %styles, because they differ per template ('Standard' vs. 'Normal',
+    # 'Überschrift 1' vs. 'heading 1', ...).
+    $text =~ s{^::: \{custom-style="\Q$styles{'HEADFIRST'}\E"\}\n(.*?)\n:::}{$1}msg;
+    $text =~ s{^::: \{custom-style="\Q$styles{'CHAP_TTL'}\E"\}\n(.*?)\n:::}{# $1}msg;
+    $text =~ s{^::: \{custom-style="\Q$styles{'H1'}\E"\}\n(.*?)\n:::}{## $1}msg;
+    $text =~ s{^::: \{custom-style="\Q$styles{'H2'}\E"\}\n(.*?)\n:::}{### $1}msg;
+    $text =~ s{^::: \{custom-style="\Q$styles{'H3'}\E"\}\n(.*?)\n:::}{#### $1}msg;
 
     return $text;
 }
