@@ -29,7 +29,7 @@ IFS='' read -r -d '' SCRIPT_USAGE <<EOF
      or:  $0 --template dpunkt_2019 --output fatpub.md --single-file true leanpub.md
 options:
                     -h/--help  print this help string
-     -t/--template <template>  use publisher template. Possible publisher templates: ptg_awph02 dpunkt_einspaltig dpunkt_2019
+     -t/--template <template>  use publisher template. Possible publisher templates: ptg_awph02 dpunkt_einspaltig dpunkt_2019 dpunkt_V05
     -o/--output <output file>  output to file <output file>
            --single-file true  treat <input file> as containing the data directly (as opposed to containing a list of files that contain the data like \`book.txt\`)
 EOF
@@ -113,6 +113,8 @@ case "${TEMPLATE}" in
         ${BINDIR}/markua2dpunkt_einspaltig ${MARKUAFILE} > ${OUTPUTFILE} ;;
     dpunkt_2019)
         ${BINDIR}/markua2dpunkt_2019 ${MARKUAFILE} > ${OUTPUTFILE} ;;
+    dpunkt_V05)
+        ${BINDIR}/markua2dpunkt_V05 ${MARKUAFILE} > ${OUTPUTFILE} ;;
     *)
         echo "Invalid publisher template: ${TEMPLATE}."
         exit -1 ;;

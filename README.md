@@ -17,7 +17,12 @@ Your publisher will provide you with a DOC or DOCX file. It will have a strange 
 Currently the following templates (that you will get from your publisher) are supported:
 
 * Addison-Wesley/Pearson: `ptg_awph02`
-* dpunkt: `dpunkt_einspaltig` and `dpunkt_2019`
+* dpunkt: `dpunkt_einspaltig`, `dpunkt_2019` and `dpunkt_V05`
+
+`dpunkt_V05` targets dpunkt's accessibility (BFSG) template `dpunkt_V05.dotm`. It renames
+nearly every custom style of `dpunkt_2019`, so the two are not interchangeable. It also uses
+one listing style per programming language (`Listing Java`, `Listing Python`, ...), picked from
+the language on the code fence; see `listing_language_styles` in `bin/markua2dpunkt_V05`.
 
 ## Usage
 
@@ -42,13 +47,13 @@ jobs:
       - name: Convert to Publisher format
         uses: hschwentner/fatpub@1.5
         with:
-          template: ptg_awph02 # alternatives: dpunkt_einspaltig dpunkt_2019
+          template: ptg_awph02 # alternatives: dpunkt_einspaltig dpunkt_2019 dpunkt_V05
           in: manuscript/book.txt 
           out: book-with-publisher-styles.md
 
       - name: Convert MD to DOCX
         uses: docker://pandoc/core:2.17.0.1
-        with:  # alternatives: dpunkt_einspaltig.docx Vorlage-2019.dotx
+        with:  # alternatives: dpunkt_einspaltig.docx Vorlage-2019.dotx dpunkt_V05.dotm
           args: >
             --fail-if-warnings
             --resource-path=manuscript

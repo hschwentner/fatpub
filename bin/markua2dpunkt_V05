@@ -1,0 +1,260 @@
+#!/usr/bin/env perl
+
+# markua2dpunkt_V05 - A converter from Markua to dpunkt verlag's V05 DOCX styling
+#
+# dpunkt's V05 template (dpunkt_V05.dotm) is their BFSG/accessibility template.
+# It renames nearly every custom style of the 2019 template, offers one listing
+# style per programming language, and drops the unnumbered chapter-title style
+# Überschrift_ohneNum.
+# Copyright (C) 2026 Henning Schwentner
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    
+use v5.42;
+use warnings;
+use autodie;
+
+use utf8;                # UTF8 in sourcecode
+use open qw/:std :utf8/; # UTF8 in input and output
+
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use Markua2Styles;
+
+my %settings = (
+	# Lists
+	bullets_have_their_own_style => 0, 	# 1 == true
+	bullet_level_2 => '',                  # for BL_BL_DING
+	bullet_level_3 => '',    				# for BL_BL_BL_DING
+	bullet_in_box_level_1 => '',    	# for BX1_BL_DING
+
+	# Callout titles (I>/T>/W>)
+	note_title => 'HINWEIS',
+	tip_title => 'TIPP',
+	warning_title => 'WARNUNG',
+
+	# V05 has one listing style per programming language. The fence's language
+	# is looked up here; anything unmapped falls back to CDT_* ('Listing Standard').
+	listing_language_styles => {
+		'abap'       => 'Listing ABAP',
+		'apache'     => 'Listing Apache',
+		'c'          => 'Listing C und C++',
+		'c++'        => 'Listing C und C++',
+		'cpp'        => 'Listing C und C++',
+		'cs'         => 'Listing C Sharp',
+		'csharp'     => 'Listing C Sharp',
+		'css'        => 'Listing CSS',
+		'dart'       => 'Listing Dart',
+		'go'         => 'Listing Go',
+		'golang'     => 'Listing Go',
+		'html'       => 'Listing HTML und XML',
+		'java'       => 'Listing Java',
+		'javascript' => 'Listing JavaScript',
+		'js'         => 'Listing JavaScript',
+		'php'        => 'Listing PHP',
+		'powershell' => 'Listing PowerShell',
+		'ps1'        => 'Listing PowerShell',
+		'python'     => 'Listing Python',
+		'py'         => 'Listing Python',
+		'r'          => 'Listing R',
+		'rs'         => 'Listing Rust',
+		'rust'       => 'Listing Rust',
+		'sql'        => 'Listing SQL',
+		'swift'      => 'Listing Swift',
+		'typo3'      => 'Listing Typo3',
+		'vb'         => 'Listing VB',
+		'vbnet'      => 'Listing VB',
+		'xml'        => 'Listing HTML und XML',
+	},
+);
+
+# Define Styles to be used
+my %styles = (
+
+	# Headings
+	PART_NUM => 'PART_NUM',
+	PART_TTL => 'Teil',
+	CHAP_NUM => 'CHAP_NUM',
+	CHAP_TTL => 'Überschrift 1',
+	H1 => 'Überschrift 2',
+	H2 => 'Überschrift 3',
+	H3 => 'Überschrift 4',
+	#H4 => 'Überschrift 5',   # unnumbered in V05, but the module has no ##### handling yet
+
+	# Body text
+	HEADFIRST => 'Standard',
+	paragraph_first_after_list => 'Standard',
+	CHAP_BM => 'Standard Folge',
+
+	# Emphasizement
+	ITAL => 'Kursiv',
+	BOLD => 'Fett',
+	BOLD_ITAL => 'Fett-Kursiv',
+	SCAP => 'SCAP',
+	SCAP_ITAL => 'SCAP_ITAL',
+	SCAP_BOLD => 'SCAP_BOLD',
+	SCAP_BOLD_ITAL => 'SCAP_BOLD_ITAL',
+
+	# Lists
+	BL_FIRST => 'Liste unnummeriert',
+	BL_MID => 'Liste unnummeriert',
+	BL_LAST => 'Liste unnummeriert',
+	BL_CON => 'Liste Einzug',
+	BL_CDT_FIRST => 'Liste Listing',
+	BL_CDT_MID => 'Liste Listing',
+	BL_CDT_LAST => 'Liste Listing',
+	BL_BL_FIRST => 'Liste unter',
+	BL_BL_MID => 'Liste unter',
+	BL_BL_LAST => 'Liste unter',
+	BL_BL_DING => '',
+	BL_BL_BL_FIRST => 'Liste unter',
+	BL_BL_BL_MID => 'Liste unter',
+	BL_BL_BL_LAST => 'Liste unter',
+	BL_BL_BL_DING => '',
+	NL_FIRST => 'Liste 1.',
+	NL_MID => 'Liste 1.',
+	NL_LAST => 'Liste 1.',
+	NL_NUM => '',
+	NL_NL_FIRST => 'Liste 234.',
+	NL_NL_MID => 'Liste 234.',
+	NL_NL_LAST => 'Liste 234.',
+	#TODO: Liste-Folgeabsatz
+	DL_TERM => 'Fett',
+	DL_DEF => 'Liste unnummeriert',
+	DL_DEF_CON => 'Liste Einzug',
+	DL_DL_TERM => 'Fett',
+	DL_DL_DEF => 'Liste unter',
+	DL_DL_DEF_CON => 'List Paragraph',
+
+	# Tables
+	TBL => 'Tabellentext',
+	TBL_COLHD => 'Tabellenkopf',
+	TBL_TTL => 'Tabellenunterschrift',
+	TBL_NUM => 'TBL_NUM',
+
+	# Images and figures
+	ARTLIST => 'Standard Folge',
+	FIG_TTL => 'Bildunterschrift',
+	FIG_NUM => 'FIG_NUM',
+
+	# Footnotes
+	FN => 'footnote text',           # Todo: unused so far, pandoc styles footnotes itself
+
+	# Quotes and extracts
+	CF_EPG_FIRST => 'Zitat1',
+	CF_EPG_ATTR_AU_NA => 'Zitat1',   # TODO dpunkt: V05 has no Zitat_Autor equivalent
+	EPG => 'Zitat1',
+	EPG_ATTR_AU_NA => 'Zitat1',      # TODO dpunkt: V05 has no Zitat_Autor equivalent
+	EXT_ONLY => 'Kasten Standard',
+	
+	# Dialogue
+	DLG_FIRST => 'DLG_FIRST',
+	DLG_MID => 'DLG_MID',
+	DLG_LAST => 'DLG_LAST',
+	DLG_SPKR => 'Fett',
+
+	# Equations
+	EQ_ONLY => 'Formel',
+
+	# Code
+	CIT => 'Listing Zeichen',
+	CDT_ONLY => 'Listing Standard',
+	CDT_FIRST => 'Listing Standard',
+	CDT_MID => 'Listing Standard',
+	CDT_LAST => 'Listing Standard',
+	DT_FIRST => 'Listing Standard',
+	DT_MID => 'Listing Standard',
+	DT_LAST => 'Listing Standard',
+	DT_NUM => 'DT_NUM',
+	DT_BOLD => 'Listing Zeichen Fett',
+	DT_ITAL => 'Listing Zeichen Kursiv',
+
+	# Tips and notes
+	SF1_TTL => 'Kasten Überschrift',
+	SF1_FIRST => 'Kasten Standard',
+	SF2_TTL => 'Kasten Überschrift',
+	SF2_FIRST => 'Kasten Standard',
+
+    # Asides and boxes
+    BX1_TTL => 'Kasten Überschrift',
+    BX1_H1 => 'Kasten Überschrift',
+    BX1_FIRST => 'Kasten Standard',
+    BX1 => 'Kasten Standard',
+    BX1_DLG_FIRST => 'BX1_DLG_FIRST',
+    BX1_DLG_MID => 'BX1_DLG_MID',
+    BX1_DLG_LAST => 'BX1_DLG_LAST',
+    BX1_EQ_ONLY => 'BX1_EQ_ONLY',
+    BX1_BL_FIRST => 'Kasten Liste unnummeriert',
+    BX1_BL_MID => 'Kasten Liste unnummeriert',
+    BX1_BL_LAST => 'Kasten Liste unnummeriert',
+	BX1_BL_DING => 'BX1_BL_DING',
+    BX1_BL_CON => 'Kasten Liste Einzug',   # or rather: Merksatz-Liste-Folgeabsatz
+    BX1_BL_CON_LAST => 'Kasten Liste Einzug',   # or rather: Merksatz-Liste-Folgeabsatz
+	BX1_NL_FIRST => 'Kasten Liste 1.',
+    BX1_NL_MID => 'Kasten Liste 1.',
+    BX1_NL_LAST => 'Kasten Liste 1.',
+	BX1_FIG_TTL => 'Kasten Bildunterschrift',
+    BX1_FIG_NUM => 'BX1_FIG_NUM',
+
+	# Praise
+	BKFM_PP => 'BKFM_PP',
+	BKFM_PP_AU_NA => 'BKFM_PP_AU_NA',
+
+	# Glossary
+	BKRM_GLOS_DEF => 'BKRM_GLOS_DEF',
+	BKRM_GLOS_KT => 'BKRM_GLOS_KT',
+	BKRM_GLOS_KT_SCAP => 'BKRM_GLOS_KT_SCAP',
+
+	# Bibliograpy
+	BKRM_BIB_TTL => 'Überschrift 1',
+	BKRM_BIB1 => 'Bibliography',
+	BKRM_BIB2 => 'Bibliography',
+
+	# Part
+    # 	Headings
+    PART_H1 => 'Spitzmarke',   # TODO dpunkt: confirm; V05 dropped Überschrift_ohneNum   
+    PART_H2 => 'Spitzmarke',
+    # 	Paragraphs
+    PART_FIRST => 'Standard',
+    PART => 'Standard Folge',
+    # 	Lists, bulleted
+    PART_BL_FIRST => 'Liste unnummeriert',
+    PART_BL_MID => 'Liste unnummeriert',
+    PART_BL_LAST => 'Liste unnummeriert',
+    # 	Code
+    PART_CDT_ONLY => 'Listing Standard',
+    PART_CDT_FIRST => 'Listing Standard',
+    PART_CDT_MID => 'Listing Standard',
+    PART_CDT_LAST => 'Listing Standard',
+    # 	Figures
+    PART_FIG_TTL => 'Bildunterschrift',
+    PART_FIG_NUM => 'PART_FIG_NUM',
+    # 	Tables
+    PART_TBL => 'Tabellentext',
+    PART_TBL_COLHD => 'Tabellenkopf',
+    PART_TBL_TTL => 'Tabellenunterschrift',
+    PART_TBL_NUM => 'PART_TBL_NUM',
+
+# TODO: replacement of styles for Acknowledgements, About the Authors, etc.
+
+);
+
+
+
+my $text;
+{
+	local $/;               # Slurp the whole file
+	$text = <>;             # Use file if specified or stdin otherwise
+}
+print Markua2Styles($text, \%settings, \%styles);

@@ -23,7 +23,7 @@ use utf8;                # UTF8 in sourcecode
 use open qw/:std :utf8/; # UTF8 in input and output
 
 use Exporter 'import';
-our $VERSION = '1.22';
+our $VERSION = '1.24';
 our @EXPORT  = qw(Markua2Styles);
 
 # Usage:
@@ -484,6 +484,11 @@ sub translateSourceCode {
 
     #   body and line numbering
     $text =~ s{(^```.*?^```)}{replaceWithCodeBodyStyles($1)}msge;
+
+    #   language-specific listing styles, one style per fenced block
+    #   (only for templates that provide a `listing_language_styles` map)
+    $text =~ s{(^```.*?^```)}{replaceWithListingLanguageStyle($1)}msge
+        if ref $settings{'listing_language_styles'} eq 'HASH';
  
     # Code one-liner
     $text =~ s/^```.*?\n(.*?)\n```$/::: {custom-style="$styles{'CDT_ONLY'}"}\n$1\n:::/mg;
@@ -574,6 +579,31 @@ sub replaceWithCodeBodyStyles {
     $text =~ s/^([^`].*)$/$1  /gm;
 
     return $text;
+}
+
+# Publishers whose template offers one listing style per programming language
+# (e.g. dpunkt's V05 template with `Listing Java`, `Listing Python`, ...) get the
+# whole fenced block in that one style. The fence's language is looked up in the
+# template's `listing_language_styles` map; unmapped languages fall through to
+# the generic CDT_* handling below.
+sub replaceWithListingLanguageStyle {
+    my $block = shift;
+
+    my $language_styles = $settings{'listing_language_styles'};
+    return $block unless ref $language_styles eq 'HASH';
+
+    my @lines = split /\n/, $block, -1;
+    my $fence = shift @lines;
+    my ($language) = $fence =~ /^ *```[ \t]*([A-Za-z0-9_+#.-]+)/;
+    return $block unless defined $language;
+
+    my $style = $language_styles->{lc $language};
+    return $block unless defined $style && $style ne '';
+
+    return $block unless @lines && $lines[-1] =~ /^ *``` *$/;
+    pop @lines;    # closing fence
+
+    return qq(::: {custom-style="$style"}\n) . join("\n", @lines) . qq(\n:::);
 }
 
 sub replaceWithGherkinCodeStyles {
