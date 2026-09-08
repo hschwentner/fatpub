@@ -79,27 +79,35 @@ my %settings = (
 	},
 );
 
-# Define Styles to be used
+# Define Styles to be used.
+#
+# Pandoc resolves a custom-style against a style's w:name, not its w:styleId.
+# Word stores its built-in styles under their English w:name and only shows the
+# localized name in the UI, so the styles that Word's German UI calls
+# »Überschrift 1«, »Standard« and »Fett« have to be referenced here as
+# 'heading 1', 'Normal' and 'Strong'. Using the German name instead makes Pandoc
+# append a new, empty style of that name whose styleId collides with the
+# template's — the text then silently loses the template's formatting.
 my %styles = (
 
 	# Headings
 	PART_NUM => 'PART_NUM',
 	PART_TTL => 'Teil',
 	CHAP_NUM => 'CHAP_NUM',
-	CHAP_TTL => 'Überschrift 1',
-	H1 => 'Überschrift 2',
-	H2 => 'Überschrift 3',
-	H3 => 'Überschrift 4',
+	CHAP_TTL => 'heading 1',        # »Überschrift 1«
+	H1 => 'heading 2',              # »Überschrift 2«
+	H2 => 'heading 3',              # »Überschrift 3«
+	H3 => 'heading 4',              # »Überschrift 4«
 	#H4 => 'Überschrift 5',   # unnumbered in V05, but the module has no ##### handling yet
 
 	# Body text
-	HEADFIRST => 'Standard',
-	paragraph_first_after_list => 'Standard',
+	HEADFIRST => 'Normal',          # »Standard«
+	paragraph_first_after_list => 'Normal',
 	CHAP_BM => 'Standard Folge',
 
 	# Emphasizement
 	ITAL => 'Kursiv',
-	BOLD => 'Fett',
+	BOLD => 'Strong',               # »Fett«
 	BOLD_ITAL => 'Fett-Kursiv',
 	SCAP => 'SCAP',
 	SCAP_ITAL => 'SCAP_ITAL',
@@ -123,17 +131,17 @@ my %styles = (
 	BL_BL_BL_LAST => 'Liste unter',
 	BL_BL_BL_DING => '',
 	NL_FIRST => 'Liste 1.',
-	NL_MID => 'Liste 1.',
-	NL_LAST => 'Liste 1.',
+	NL_MID => 'Liste 234.',
+	NL_LAST => 'Liste 234.',
 	NL_NUM => '',
-	NL_NL_FIRST => 'Liste 234.',
-	NL_NL_MID => 'Liste 234.',
-	NL_NL_LAST => 'Liste 234.',
+	NL_NL_FIRST => 'NL_NL_FIRST',     # TODO dpunkt: V05 has no nested numbered list style
+	NL_NL_MID => 'NL_NL_MID',
+	NL_NL_LAST => 'NL_NL_LAST',
 	#TODO: Liste-Folgeabsatz
-	DL_TERM => 'Fett',
+	DL_TERM => 'Strong',
 	DL_DEF => 'Liste unnummeriert',
 	DL_DEF_CON => 'Liste Einzug',
-	DL_DL_TERM => 'Fett',
+	DL_DL_TERM => 'Strong',
 	DL_DL_DEF => 'Liste unter',
 	DL_DL_DEF_CON => 'List Paragraph',
 
@@ -162,7 +170,7 @@ my %styles = (
 	DLG_FIRST => 'DLG_FIRST',
 	DLG_MID => 'DLG_MID',
 	DLG_LAST => 'DLG_LAST',
-	DLG_SPKR => 'Fett',
+	DLG_SPKR => 'Strong',
 
 	# Equations
 	EQ_ONLY => 'Formel',
@@ -202,8 +210,8 @@ my %styles = (
     BX1_BL_CON => 'Kasten Liste Einzug',   # or rather: Merksatz-Liste-Folgeabsatz
     BX1_BL_CON_LAST => 'Kasten Liste Einzug',   # or rather: Merksatz-Liste-Folgeabsatz
 	BX1_NL_FIRST => 'Kasten Liste 1.',
-    BX1_NL_MID => 'Kasten Liste 1.',
-    BX1_NL_LAST => 'Kasten Liste 1.',
+    BX1_NL_MID => 'Kasten Liste 234.',
+    BX1_NL_LAST => 'Kasten Liste 234.',
 	BX1_FIG_TTL => 'Kasten Bildunterschrift',
     BX1_FIG_NUM => 'BX1_FIG_NUM',
 
@@ -217,7 +225,7 @@ my %styles = (
 	BKRM_GLOS_KT_SCAP => 'BKRM_GLOS_KT_SCAP',
 
 	# Bibliograpy
-	BKRM_BIB_TTL => 'Überschrift 1',
+	BKRM_BIB_TTL => 'heading 1',
 	BKRM_BIB1 => 'Bibliography',
 	BKRM_BIB2 => 'Bibliography',
 
@@ -226,7 +234,7 @@ my %styles = (
     PART_H1 => 'Spitzmarke',   # TODO dpunkt: confirm; V05 dropped Überschrift_ohneNum   
     PART_H2 => 'Spitzmarke',
     # 	Paragraphs
-    PART_FIRST => 'Standard',
+    PART_FIRST => 'Normal',
     PART => 'Standard Folge',
     # 	Lists, bulleted
     PART_BL_FIRST => 'Liste unnummeriert',
