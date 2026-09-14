@@ -33,6 +33,9 @@ use lib "$FindBin::Bin/../lib";
 use Markua2Styles;
 
 my %settings = (
+	# Index entries become Word XE fields, which Word turns into the index.
+	index_entries => 'word_fields',
+
 	# Lists
 	bullets_have_their_own_style => 0, 	# 1 == true
 	bullet_level_2 => '',                  # for BL_BL_DING
@@ -259,6 +262,12 @@ my %styles = (
 );
 
 
+
+# Some publishers want every listing in one style, no matter the language.
+if (grep { $_ eq '--no-language-listings' } @ARGV) {
+	@ARGV = grep { $_ ne '--no-language-listings' } @ARGV;
+	$settings{listing_language_styles} = {};
+}
 
 my $text;
 {

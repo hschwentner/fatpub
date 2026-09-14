@@ -32,6 +32,7 @@ options:
      -t/--template <template>  use publisher template. Possible publisher templates: ptg_awph02 dpunkt_einspaltig dpunkt_2019 dpunkt_V05
     -o/--output <output file>  output to file <output file>
            --single-file true  treat <input file> as containing the data directly (as opposed to containing a list of files that contain the data like \`book.txt\`)
+  --no-language-listings true  put every listing in the template's standard listing style instead of the one for its language (dpunkt_V05 only)
 EOF
 
 
@@ -56,6 +57,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     --single-file)
       SINGLEFILE="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --no-language-listings)
+      NOLANGUAGELISTINGS="$2"
       shift # past argument
       shift # past value
       ;;
@@ -103,6 +109,10 @@ else
 fi
 
 
+# The value form matches --single-file, so the GitHub Action can always pass it
+[[ ${NOLANGUAGELISTINGS} == true ]] && LANGUAGELISTINGSSWITCH="--no-language-listings"
+
+
 # Choose and call conversion script
 BINDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -114,7 +124,7 @@ case "${TEMPLATE}" in
     dpunkt_2019)
         ${BINDIR}/markua2dpunkt_2019 ${MARKUAFILE} > ${OUTPUTFILE} ;;
     dpunkt_V05)
-        ${BINDIR}/markua2dpunkt_V05 ${MARKUAFILE} > ${OUTPUTFILE} ;;
+        ${BINDIR}/markua2dpunkt_V05 ${LANGUAGELISTINGSSWITCH} ${MARKUAFILE} > ${OUTPUTFILE} ;;
     *)
         echo "Invalid publisher template: ${TEMPLATE}."
         exit -1 ;;

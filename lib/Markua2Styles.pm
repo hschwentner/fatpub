@@ -74,7 +74,48 @@ sub Markua2Styles {
 
     $text = removeMarkupForStandardStyles($text);
 
+    # Last step: the raw OOXML of an index field contains backticks, which the
+    # code and emphasis rules would otherwise take for inline code.
+    $text = translateIndexEntries($text);
+
     return $text;
+}
+
+sub translateIndexEntries {
+    my $text = shift;
+
+    my $mode = $settings{'index_entries'} // 'drop';
+
+    if ($mode ne 'word_fields') {
+        $text =~ s/\{i:.*?\}//gm;    # Ignore index entries
+        return $text;
+    }
+
+    # Word builds its index from XE fields, so a Markua index entry becomes one.
+    # Pandoc passes the raw OOXML through untouched.
+    $text =~ s/\{i:\s*(.*?)\s*\}/indexField($1)/gme;
+
+    return $text;
+}
+
+sub indexField {
+    my $term = shift;
+
+    $term =~ s/^"(.*)"$/$1/;    # the term may or may not be quoted
+
+    # Word's field syntax first: a backslash escapes the character behind it,
+    # and a bare quotation mark would end the argument.
+    $term =~ s/\\/\\\\/g;
+    $term =~ s/"/\\"/g;
+
+    # then XML, because the term ends up in a text node
+    $term =~ s/&/&amp;/g;
+    $term =~ s/</&lt;/g;
+    $term =~ s/>/&gt;/g;
+
+    return '`<w:r><w:fldChar w:fldCharType="begin"/></w:r>'
+        . '<w:r><w:instrText xml:space="preserve"> XE "' . $term . '" </w:instrText></w:r>'
+        . '<w:r><w:fldChar w:fldCharType="end"/></w:r>`{=openxml}';
 }
 
 sub cleanup {
@@ -89,7 +130,6 @@ sub cleanup {
     $text =~ s/^\{sample(.*)$//gm;     # Leanpub-Direktiven wie {sample} ausblenden
     $text =~ s/^\{width(.*)$//gm;
     $text =~ s/^\{id(.*)$//gm;
-    $text =~ s/\{i:.*?\}//gm;          # Ignore index entries
 
     return $text;
 }
@@ -403,27 +443,74 @@ sub translateLists {
         $text =~ s/\n    - (.*?)(\n+(?!    -))/\n::: {custom-style="$styles{'BL_BL_BL_LAST'}"}\n\[$settings{'bullet_level_3'}\]{custom-style="$styles{'BL_BL_BL_DING'}"}\t$1\n:::$2/gm;
         $text =~ s/^    - (.*)$/::: {custom-style="$styles{'BL_BL_BL_MID'}"}\n\[$settings{'bullet_level_3'}\]{custom-style="$styles{'BL_BL_BL_DING'}"}	$1\n:::/gm;   
     }
-    unless ($styles{'NL_NUM'}) {
-        # Numbered                            
-        $text =~ s/(^1\.) (.*)$/::: {custom-style="$styles{'NL_FIRST'}"}\n$2\n:::/gm;
-        $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_LAST'}"}\n$2\n:::$3/gm;      
-        $text =~ s/(^[2-9]\.) (.*)$/::: {custom-style="$styles{'NL_MID'}"}\n$2\n:::/gm;      
-        # Numbered, level 2
-        $text =~ s/^    (1\.) (.*)$/::: {custom-style="$styles{'NL_NL_FIRST'}"}\n$2\n:::/gm;
-        $text =~ s/\n    (\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_NL_LAST'}"}\n$2\n:::$3/gm;      
-        $text =~ s/^    ([2-9]\.) (.*)$/::: {custom-style="$styles{'NL_NL_MID'}"}\n$2\n:::/gm;      
-    } else  {
-        # Numbered                            
-        $text =~ s/(^1\.) (.*)$/::: {custom-style="$styles{'NL_FIRST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;
-        $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      
-        $text =~ s/(^[2-9]\.) (.*)$/::: {custom-style="$styles{'NL_MID'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;      
-        # Numbered, level 2
-        $text =~ s/^    (1\.) (.*)$/::: {custom-style="$styles{'NL_NL_FIRST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;
-        $text =~ s/\n    (\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      
-        $text =~ s/^    ([2-9]\.) (.*)$/::: {custom-style="$styles{'NL_NL_MID'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;      
-    }
+    # Numbered: whether an item opens, continues or closes its list depends on
+    # where it stands, not on the number written in the manuscript. Markdown lets
+    # every item read "1.", and a list may run past nine items.
+    $text = translateNumberedLists($text, '', 'NL_FIRST', 'NL_MID', 'NL_LAST');
+    $text = translateNumberedLists($text, '    ', 'NL_NL_FIRST', 'NL_NL_MID', 'NL_NL_LAST');
 
     return $text;
+}
+
+sub translateNumberedLists {
+    my ($text, $indent, $first, $mid, $last) = @_;
+
+    my @lines = split /\n/, $text, -1;
+    my $item = qr/^\Q$indent\E(\d+)\. (.*)$/;
+
+    # A continuation paragraph has already been wrapped into a block of its own
+    # above; it still belongs to the item it follows.
+    my $continuationStart = '::: {custom-style="' . ($styles{'BL_CON'} // '') . '"}';
+
+    my $previous = sub {
+        my $i = shift;
+        $i-- while $i >= 0 && $lines[$i] eq '';
+        return $i;
+    };
+    my $following = sub {
+        my $i = shift;
+        $i++ while $i <= $#lines && $lines[$i] eq '';
+        return $i;
+    };
+
+    # The closest line above belongs to the same list: an item, or the end of a
+    # continuation block.
+    my $continuesAbove = sub {
+        my $j = $previous->(shift() - 1);
+        return 0 if $j < 0;
+        return 1 if $lines[$j] =~ $item;
+        return 0 unless $lines[$j] eq ':::';
+        my $depth = 1;
+        for (my $k = $j - 1; $k >= 0; $k--) {
+            if ($lines[$k] eq ':::') { $depth++; }
+            elsif ($lines[$k] =~ /^::: \{/) { return $lines[$k] eq $continuationStart if --$depth == 0; }
+        }
+        return 0;
+    };
+
+    # The closest line below belongs to the same list: an item, or the start of a
+    # continuation block.
+    my $continuesBelow = sub {
+        my $j = $following->(shift() + 1);
+        return 0 if $j > $#lines;
+        return $lines[$j] =~ $item || $lines[$j] eq $continuationStart;
+    };
+
+    my @result;
+    for my $i (0 .. $#lines) {
+        unless ($lines[$i] =~ $item) {
+            push @result, $lines[$i];
+            next;
+        }
+        my ($number, $content) = ($1, $2);
+        my $style = ($number == 1 && !$continuesAbove->($i)) ? $first
+                  : $continuesBelow->($i)                    ? $mid
+                  :                                              $last;
+        # Templates with a number style print the number as the manuscript wrote it.
+        $content = "[$number.]{custom-style=\"$styles{'NL_NUM'}\"} $content" if $styles{'NL_NUM'};
+        push @result, qq{::: {custom-style="$styles{$style}"}}, $content, ':::';
+    }
+    return join "\n", @result;
 }
 
 sub translateTables {
