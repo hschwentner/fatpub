@@ -88,6 +88,11 @@ for my $case (
     [ 'The sand{i: "Niagara!*sand*"}.',               'The sand.',             'inline markup in a term' ],
     [ 'Strange!{i: "Strange\\!"}.',                     'Strange!.',             'an escaped literal !' ],
     [ 'A Sabbath{i: "Sabbath, the"}.',                'A Sabbath.',            'a comma is part of the term' ],
+    [ 'A pipe{i: "a\\|b"}.',                           'A pipe.',               'an escaped literal |' ],
+    [ 'A brace{i: "a\\{b\\}"}.',                        'A brace.',              'escaped literal braces' ],
+    [ 'A hook{i: "useState"}.',                       'A hook.',               'a term that could be code' ],
+    # Only the index entry is taken out; a real attribute is not ours to remove.
+    [ 'An id{id: #myid, i: "blah"}.',                 'An id{id: #myid}.',     'an entry beside other attributes' ],
 ) {
     my ($markua, $expected, $what) = @$case;
     my $out = convert("First.\n\n$markua\n\nLast.\n");
@@ -95,23 +100,18 @@ for my $case (
     like(   $out, qr/\Q$expected\E/, "$what: the sentence is left intact" );
 }
 
-# A see or seealso reference nests another {i:...} inside the entry, and the
-# pattern that drops entries is non-greedy, so it stops at the inner brace and
-# leaves the tail of the entry in the text. #1 replaces that pattern with one
-# that knows about the nesting; until it lands, these stay TODO.
+# A see or seealso reference nests another {i:...} inside the entry, which the
+# pattern that recognises an entry has to account for: a non-greedy one stops at
+# the inner brace and leaves the tail of the entry standing in the text.
 
-TODO: {
-    local $TODO = 'the drop pattern stops at the inner brace of a |see reference, '
-                . 'leaving the rest of the entry in the text';
-
-    for my $case (
-        [ q{Silver{i: "Tennessee|see{i:'silver'}"}.},   'Silver.', 'a see reference, which nests {i:...}' ],
-        [ q{A coat{i: "Tennessee|seealso{i:'coat'}"}.}, 'A coat.', 'a seealso reference' ],
-    ) {
-        my ($markua, $expected, $what) = @$case;
-        like( convert("First.\n\n$markua\n\nLast.\n"), qr/\Q$expected\E/,
-            "$what: the sentence is left intact" );
-    }
+for my $case (
+    [ q{Silver{i: "Tennessee|see{i:'silver'}"}.},   'Silver.', 'a see reference, which nests {i:...}' ],
+    [ q{A coat{i: "Tennessee|seealso{i:'coat'}"}.}, 'A coat.', 'a seealso reference' ],
+) {
+    my ($markua, $expected, $what) = @$case;
+    my $out = convert("First.\n\n$markua\n\nLast.\n");
+    unlike( $out, qr/\{i:/,           "$what: nothing of the entry survives" );
+    like(   $out, qr/\Q$expected\E/, "$what: the sentence is left intact" );
 }
 
 done_testing();
