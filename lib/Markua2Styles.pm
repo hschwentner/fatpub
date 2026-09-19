@@ -86,29 +86,63 @@ sub Markua2Styles {
 
 our @indexEntries;
 
-# One index entry. The nested {i:'...'} is what a |see / |seealso reference
-# carries, so a plain non-greedy match would stop at the inner brace and leave
-# the tail of the entry standing in the text.
-our $INDEX_ENTRY = qr{ \{i: (?: [^{}] | \{i: [^{}]* \} )* \} }x;
+# An attribute list, which is where an index entry lives. "|", "{", "}" and "\"
+# are backslash-escaped inside an entry, and a |see reference nests another
+# {i:'...'} inside this one, so neither a plain [^{}] class nor a non-greedy
+# match gets to the right closing brace.
+our $ATTRIBUTE_LIST = qr{ \{ (?: \\. | [^{}\\] | \{ (?: \\. | [^{}\\] )* \} )* \} }x;
 
 sub extractIndexEntries {
     my $text = shift;
 
     @indexEntries = ();
     my $mode = $settings{'index_entries'} // 'drop';
-
-    if ($mode ne 'word_fields') {
-        $text =~ s/$INDEX_ENTRY//g;    # Ignore index entries
-        return $text;
-    }
+    my $drop = $mode ne 'word_fields';
 
     # The placeholder stands in for the entry until expandIndexEntries() puts the
     # field in its place. U+E000 is private use, so no manuscript can contain it,
     # and $PARAGRAPH_START accepts it so a paragraph opening with an entry is
     # still recognised as one.
-    $text =~ s/($INDEX_ENTRY)/push @indexEntries, $1; "\x{E000}" . $#indexEntries . "\x{E001}"/ge;
+    $text =~ s{($ATTRIBUTE_LIST)}{
+        my ($entry, $rest) = splitOffIndexEntry($1);
+        !defined $entry      ? $1
+            : $drop          ? $rest
+            : do { push @indexEntries, $entry; "\x{E000}" . $#indexEntries . "\x{E001}" . $rest }
+    }ge;
 
     return $text;
+}
+
+# Markua puts index entries in attribute lists, so one may sit beside other
+# attributes: {id: #myid, i: "blah"}. Returns the entry's value and whatever is
+# left of the list, or undef if the list holds no index entry at all.
+sub splitOffIndexEntry {
+    my $list = shift;
+
+    (my $body = $list) =~ s/^\{|\}$//g;
+
+    my (@attributes, $current, $quote);
+    for my $char (split //, $body) {
+        if ($quote)             { $current .= $char; undef $quote if $char eq $quote; next }
+        if ($char =~ /["']/)    { $quote = $char; $current .= $char; next }
+        if ($char eq ',')       { push @attributes, $current // ''; $current = ''; next }
+        $current .= $char;
+    }
+    push @attributes, $current if defined $current;
+
+    my ($entry, @others);
+    for my $attribute (@attributes) {
+        if (!defined $entry && $attribute =~ /^\s*i\s*:\s*(.*?)\s*$/s) { $entry = $1 }
+        # Only a real "key: value" is an attribute worth keeping. Anything else
+        # in the list came with the entry and goes with it, which is what the
+        # AsciiDoc-flavoured entries in some manuscripts look like:
+        # {i: "term", id="...", range="startofrange"} is one entry, not three.
+        elsif ($attribute =~ /^\s*[\w-]+\s*:\s*\S/) { push @others, $attribute }
+    }
+    return undef unless defined $entry;
+
+    my $rest = @others ? '{' . join(',', @others) . '}' : '';
+    return ($entry, $rest);
 }
 
 sub expandIndexEntries {
@@ -123,21 +157,16 @@ sub expandIndexEntries {
     return $text;
 }
 
-# Markua writes an index entry as {i: term}, where the term may be quoted, may
-# name several levels separated by "!" (an escaped "\!" is a literal one), and
-# may end in a |see or |seealso reference:
+# Markua's index entry syntax, spec section 11.24: the term may be quoted or
+# bare, name several levels separated by "!", carry inline emphasis, and end in
+# a |see or |seealso reference. "!", "|", "{", "}" and "\" are escaped with a
+# backslash when they are meant literally.
 #
-#     {i: Ishmael}
-#     {i: "Niagara!cataract"}
-#     {i: "Strange\!"}
-#     {i: "Tennessee|see{i:'silver'}"}
-#
-# See <https://help.leanpub.com/en/articles/6961502-how-to-create-an-index-in-a-leanpub-book>.
+#     {i: Ishmael}                        {i: "hello!Peter"}
+#     {i: "Yahoo\!"}                      {i: "Peter|see{i:'hello'}"}
 sub parseIndexEntry {
     my $entry = shift;
 
-    $entry =~ s/^\{i:\s*//;
-    $entry =~ s/\}$//;
     $entry =~ s/^\s+|\s+$//g;
     $entry =~ s/^"(.*)"$/$1/s or $entry =~ s/^'(.*)'$/$1/s;    # the quotes are optional
 
@@ -150,31 +179,63 @@ sub parseIndexEntry {
     return ($entry, $reference, $target);
 }
 
+# A term is split into pieces that carry the same emphasis, because Word takes
+# the formatting of an index entry from the runs the field is built of.
+sub markupSegments {
+    my $text = shift;
+
+    # A code span opens and closes with a backtick string of equal length, so a
+    # term may carry a backtick of its own between doubled ones. The space that
+    # separates such a backtick from the fence is not content. Word's field
+    # takes plain text, so the span itself does not survive.
+    $text =~ s{(`+)(.+?)\1}{ my $code = $2; $code =~ s/^ (.*) $/$1/s unless $code =~ /^ +$/; $code }ge;
+
+    my @segments;
+    while (length $text) {
+        if    ($text =~ s/^\*\*(.+?)\*\*//) { push @segments, { text => $1, bold   => 1 } }
+        elsif ($text =~ s/^\*(.+?)\*//)     { push @segments, { text => $1, italic => 1 } }
+        elsif ($text =~ s/^_(.+?)_//)       { push @segments, { text => $1, italic => 1 } }
+        elsif ($text =~ s/^((?:\\.|[^*_\\])+)//s) { push @segments, { text => $1 } }
+        else  { push @segments, { text => substr($text, 0, 1, '') } }
+    }
+    return @segments;
+}
+
 # Markua separates the levels of an entry with "!", Word with ":".
-sub indexLevels {
+sub indexSegments {
     my $term = shift;
 
+    my @segments;
     my @levels = split /(?<!\\)!/, $term, -1;
-    for my $level (@levels) {
-        $level =~ s/\\!/!/g;                  # resolve Markua's escape
+    for my $i (0 .. $#levels) {
+        push @segments, { text => ':' } if $i;
+        for my $segment (markupSegments($levels[$i])) {
+            (my $text = $segment->{'text'}) =~ s/\\(.)/$1/g;    # resolve Markua's escapes
 
-        # Word's field takes plain text, so inline markup cannot come along.
-        # A code span opens and closes with a backtick string of equal length,
-        # so a term may carry a backtick of its own between doubled ones. The
-        # space that separates such a backtick from the fence is not content.
-        $level =~ s{(`+)(.+?)\1}{ my $code = $2; $code =~ s/^ (.*) $/$1/s unless $code =~ /^ +$/; $code }ge;
-        $level =~ s/\*\*(.+?)\*\*/$1/g;
-        $level =~ s/\*(.+?)\*/$1/g;
-        $level =~ s/_(.+?)_/$1/g;
+            # Word's field syntax: a backslash escapes what follows, a bare
+            # quotation mark ends the argument, a colon starts another level.
+            $text =~ s/([\\"])/\\$1/g;
+            $text =~ s/:/\\:/g;
 
-        # Word's field syntax: a backslash escapes what follows, a bare quotation
-        # mark would end the argument, and a colon would start another level.
-        $level =~ s/\\/\\\\/g;
-        $level =~ s/"/\\"/g;
-        $level =~ s/:/\\:/g;
+            push @segments, { %$segment, text => $text };
+        }
     }
+    return @segments;
+}
 
-    return join ':', @levels;
+sub indexRun {
+    my $segment = shift;
+
+    my $properties = '';
+    $properties .= '<w:b/>' if $segment->{'bold'};
+    $properties .= '<w:i/>' if $segment->{'italic'};
+    $properties = "<w:rPr>$properties</w:rPr>" if $properties;
+
+    (my $text = $segment->{'text'}) =~ s/&/&amp;/g;
+    $text =~ s/</&lt;/g;
+    $text =~ s/>/&gt;/g;
+
+    return "<w:r>$properties<w:instrText xml:space=\"preserve\">$text</w:instrText></w:r>";
 }
 
 sub indexField {
@@ -182,20 +243,16 @@ sub indexField {
 
     my ($term, $reference, $target) = parseIndexEntry($entry);
 
-    my $field = 'XE "' . indexLevels($term) . '"';
+    my @segments = ({ text => ' XE "' }, indexSegments($term), { text => '"' });
     if ($reference) {
         # Word prints the \t text where the page number would go.
         my $label = $reference eq 'see' ? 'See' : 'See also';
-        $field .= qq{ \\t "$label } . indexLevels($target) . '"';
+        push @segments, { text => qq{ \\t "$label } }, indexSegments($target), { text => '"' };
     }
-
-    # XML last, because the field ends up in a text node.
-    $field =~ s/&/&amp;/g;
-    $field =~ s/</&lt;/g;
-    $field =~ s/>/&gt;/g;
+    push @segments, { text => ' ' };
 
     return '`<w:r><w:fldChar w:fldCharType="begin"/></w:r>'
-        . '<w:r><w:instrText xml:space="preserve"> ' . $field . ' </w:instrText></w:r>'
+        . join('', map { indexRun($_) } @segments)
         . '<w:r><w:fldChar w:fldCharType="end"/></w:r>`{=openxml}';
 }
 
