@@ -39,6 +39,9 @@ sub Markua2Styles {
 
     $text = cleanup($text);
 
+    # Index entries are lifted out here and put back as the last step.
+    $text = extractIndexEntries($text);
+
     $text = cleanupGermanAbbreviations($text);
 
     $text = translateSpecialAsides($text);
@@ -74,7 +77,183 @@ sub Markua2Styles {
 
     $text = removeMarkupForStandardStyles($text);
 
+    # Last step: the raw OOXML of an index field contains backticks, which the
+    # code and emphasis rules would otherwise take for inline code.
+    $text = expandIndexEntries($text);
+
     return $text;
+}
+
+our @indexEntries;
+
+# An attribute list, which is where an index entry lives. "|", "{", "}" and "\"
+# are backslash-escaped inside an entry, and a |see reference nests another
+# {i:'...'} inside this one, so neither a plain [^{}] class nor a non-greedy
+# match gets to the right closing brace.
+our $ATTRIBUTE_LIST = qr{ \{ (?: \\. | [^{}\\] | \{ (?: \\. | [^{}\\] )* \} )* \} }x;
+
+sub extractIndexEntries {
+    my $text = shift;
+
+    @indexEntries = ();
+    my $mode = $settings{'index_entries'} // 'drop';
+    my $drop = $mode ne 'word_fields';
+
+    # The placeholder stands in for the entry until expandIndexEntries() puts the
+    # field in its place. U+E000 is private use, so no manuscript can contain it,
+    # and $PARAGRAPH_START accepts it so a paragraph opening with an entry is
+    # still recognised as one.
+    $text =~ s{($ATTRIBUTE_LIST)}{
+        my ($entry, $rest) = splitOffIndexEntry($1);
+        !defined $entry      ? $1
+            : $drop          ? $rest
+            : do { push @indexEntries, $entry; "\x{E000}" . $#indexEntries . "\x{E001}" . $rest }
+    }ge;
+
+    return $text;
+}
+
+# Markua puts index entries in attribute lists, so one may sit beside other
+# attributes: {id: #myid, i: "blah"}. Returns the entry's value and whatever is
+# left of the list, or undef if the list holds no index entry at all.
+sub splitOffIndexEntry {
+    my $list = shift;
+
+    (my $body = $list) =~ s/^\{|\}$//g;
+
+    my (@attributes, $current, $quote);
+    for my $char (split //, $body) {
+        if ($quote)             { $current .= $char; undef $quote if $char eq $quote; next }
+        if ($char =~ /["']/)    { $quote = $char; $current .= $char; next }
+        if ($char eq ',')       { push @attributes, $current // ''; $current = ''; next }
+        $current .= $char;
+    }
+    push @attributes, $current if defined $current;
+
+    my ($entry, @others);
+    for my $attribute (@attributes) {
+        if (!defined $entry && $attribute =~ /^\s*i\s*:\s*(.*?)\s*$/s) { $entry = $1 }
+        # Only a real "key: value" is an attribute worth keeping. Anything else
+        # in the list came with the entry and goes with it, which is what the
+        # AsciiDoc-flavoured entries in some manuscripts look like:
+        # {i: "term", id="...", range="startofrange"} is one entry, not three.
+        elsif ($attribute =~ /^\s*[\w-]+\s*:\s*\S/) { push @others, $attribute }
+    }
+    return undef unless defined $entry;
+
+    my $rest = @others ? '{' . join(',', @others) . '}' : '';
+    return ($entry, $rest);
+}
+
+sub expandIndexEntries {
+    my $text = shift;
+
+    return $text unless @indexEntries;
+
+    # Word builds its index from XE fields, so a Markua index entry becomes one.
+    # Pandoc passes the raw OOXML through untouched.
+    $text =~ s/\x{E000}(\d+)\x{E001}/indexField($indexEntries[$1])/ge;
+
+    return $text;
+}
+
+# Markua's index entry syntax, spec section 11.24: the term may be quoted or
+# bare, name several levels separated by "!", carry inline emphasis, and end in
+# a |see or |seealso reference. "!", "|", "{", "}" and "\" are escaped with a
+# backslash when they are meant literally.
+#
+#     {i: Ishmael}                        {i: "hello!Peter"}
+#     {i: "Yahoo\!"}                      {i: "Peter|see{i:'hello'}"}
+sub parseIndexEntry {
+    my $entry = shift;
+
+    $entry =~ s/^\s+|\s+$//g;
+    $entry =~ s/^"(.*)"$/$1/s or $entry =~ s/^'(.*)'$/$1/s;    # the quotes are optional
+
+    my ($reference, $target) = ('', '');
+    if ($entry =~ s/(?<!\\) \| (see(?:also)?) \s* \{i:\s*(.*?)\s*\} \s*$//x) {
+        ($reference, $target) = ($1, $2);
+        $target =~ s/^"(.*)"$/$1/s or $target =~ s/^'(.*)'$/$1/s;
+    }
+
+    return ($entry, $reference, $target);
+}
+
+# A term is split into pieces that carry the same emphasis, because Word takes
+# the formatting of an index entry from the runs the field is built of.
+sub markupSegments {
+    my $text = shift;
+
+    # A code span opens and closes with a backtick string of equal length, so a
+    # term may carry a backtick of its own between doubled ones. The space that
+    # separates such a backtick from the fence is not content. Word's field
+    # takes plain text, so the span itself does not survive.
+    $text =~ s{(`+)(.+?)\1}{ my $code = $2; $code =~ s/^ (.*) $/$1/s unless $code =~ /^ +$/; $code }ge;
+
+    my @segments;
+    while (length $text) {
+        if    ($text =~ s/^\*\*(.+?)\*\*//) { push @segments, { text => $1, bold   => 1 } }
+        elsif ($text =~ s/^\*(.+?)\*//)     { push @segments, { text => $1, italic => 1 } }
+        elsif ($text =~ s/^_(.+?)_//)       { push @segments, { text => $1, italic => 1 } }
+        elsif ($text =~ s/^((?:\\.|[^*_\\])+)//s) { push @segments, { text => $1 } }
+        else  { push @segments, { text => substr($text, 0, 1, '') } }
+    }
+    return @segments;
+}
+
+# Markua separates the levels of an entry with "!", Word with ":".
+sub indexSegments {
+    my $term = shift;
+
+    my @segments;
+    my @levels = split /(?<!\\)!/, $term, -1;
+    for my $i (0 .. $#levels) {
+        push @segments, { text => ':' } if $i;
+        for my $segment (markupSegments($levels[$i])) {
+            (my $text = $segment->{'text'}) =~ s/\\(.)/$1/g;    # resolve Markua's escapes
+
+            # Word's field syntax: a backslash escapes what follows, a bare
+            # quotation mark ends the argument, a colon starts another level.
+            $text =~ s/([\\"])/\\$1/g;
+            $text =~ s/:/\\:/g;
+
+            push @segments, { %$segment, text => $text };
+        }
+    }
+    return @segments;
+}
+
+sub indexRun {
+    my $segment = shift;
+
+    my $properties = '';
+    $properties .= '<w:b/>' if $segment->{'bold'};
+    $properties .= '<w:i/>' if $segment->{'italic'};
+    $properties = "<w:rPr>$properties</w:rPr>" if $properties;
+
+    (my $text = $segment->{'text'}) =~ s/&/&amp;/g;
+    $text =~ s/</&lt;/g;
+    $text =~ s/>/&gt;/g;
+
+    return "<w:r>$properties<w:instrText xml:space=\"preserve\">$text</w:instrText></w:r>";
+}
+
+sub indexField {
+    my $entry = shift;
+
+    my ($term, $reference, $target) = parseIndexEntry($entry);
+
+    my @segments = ({ text => ' XE "' }, indexSegments($term), { text => '"' });
+    if ($reference) {
+        # Word prints the \t text where the page number would go.
+        my $label = $reference eq 'see' ? 'See' : 'See also';
+        push @segments, { text => qq{ \\t "$label } }, indexSegments($target), { text => '"' };
+    }
+    push @segments, { text => ' ' };
+
+    return '`<w:r><w:fldChar w:fldCharType="begin"/></w:r>'
+        . join('', map { indexRun($_) } @segments)
+        . '<w:r><w:fldChar w:fldCharType="end"/></w:r>`{=openxml}';
 }
 
 sub cleanup {
@@ -89,7 +268,6 @@ sub cleanup {
     $text =~ s/^\{sample(.*)$//gm;     # Leanpub-Direktiven wie {sample} ausblenden
     $text =~ s/^\{width(.*)$//gm;
     $text =~ s/^\{id(.*)$//gm;
-    $text =~ s/\{i:.*?\}//gm;          # Ignore index entries
 
     return $text;
 }
@@ -167,7 +345,7 @@ sub translateBackmatter {
     return $text;
 }
 
-our $PARAGRAPH_START = '[\[\*]*[A-ZÄÖÜa-z“„»@]';
+our $PARAGRAPH_START = '[\[\*]*[A-ZÄÖÜa-z“„»@\x{E000}]';
 
 # A bare, unnumbered native table caption (`Table: Caption {#tbl:...}`) must stay
 # adjacent to its table for pandoc-crossref to recognize it; the generic
@@ -403,27 +581,79 @@ sub translateLists {
         $text =~ s/\n    - (.*?)(\n+(?!    -))/\n::: {custom-style="$styles{'BL_BL_BL_LAST'}"}\n\[$settings{'bullet_level_3'}\]{custom-style="$styles{'BL_BL_BL_DING'}"}\t$1\n:::$2/gm;
         $text =~ s/^    - (.*)$/::: {custom-style="$styles{'BL_BL_BL_MID'}"}\n\[$settings{'bullet_level_3'}\]{custom-style="$styles{'BL_BL_BL_DING'}"}	$1\n:::/gm;   
     }
-    unless ($styles{'NL_NUM'}) {
-        # Numbered                            
-        $text =~ s/(^1\.) (.*)$/::: {custom-style="$styles{'NL_FIRST'}"}\n$2\n:::/gm;
-        $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_LAST'}"}\n$2\n:::$3/gm;      
-        $text =~ s/(^[2-9]\.) (.*)$/::: {custom-style="$styles{'NL_MID'}"}\n$2\n:::/gm;      
-        # Numbered, level 2
-        $text =~ s/^    (1\.) (.*)$/::: {custom-style="$styles{'NL_NL_FIRST'}"}\n$2\n:::/gm;
-        $text =~ s/\n    (\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_NL_LAST'}"}\n$2\n:::$3/gm;      
-        $text =~ s/^    ([2-9]\.) (.*)$/::: {custom-style="$styles{'NL_NL_MID'}"}\n$2\n:::/gm;      
-    } else  {
-        # Numbered                            
-        $text =~ s/(^1\.) (.*)$/::: {custom-style="$styles{'NL_FIRST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;
-        $text =~ s/\n(\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      
-        $text =~ s/(^[2-9]\.) (.*)$/::: {custom-style="$styles{'NL_MID'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;      
-        # Numbered, level 2
-        $text =~ s/^    (1\.) (.*)$/::: {custom-style="$styles{'NL_NL_FIRST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;
-        $text =~ s/\n    (\d+\.) (.*)(\n+[^\d\n])/\n::: {custom-style="$styles{'NL_NL_LAST'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::$3/gm;      
-        $text =~ s/^    ([2-9]\.) (.*)$/::: {custom-style="$styles{'NL_NL_MID'}"}\n\[$1\]{custom-style="$styles{'NL_NUM'}"} $2\n:::/gm;      
-    }
+    # Numbered: whether an item opens, continues or closes its list depends on
+    # where it stands, not on the number written in the manuscript. Markdown lets
+    # every item read "1.", and a list may run past nine items.
+    $text = translateNumberedLists($text, '', 'NL_FIRST', 'NL_MID', 'NL_LAST');
+    $text = translateNumberedLists($text, '    ', 'NL_NL_FIRST', 'NL_NL_MID', 'NL_NL_LAST');
 
     return $text;
+}
+
+sub translateNumberedLists {
+    my ($text, $indent, $first, $mid, $last) = @_;
+
+    my @lines = split /\n/, $text, -1;
+    my $item = qr/^\Q$indent\E(\d+)\. (.*)$/;
+
+    # A continuation paragraph has already been wrapped into a block of its own
+    # above; it still belongs to the item it follows.
+    # A template without a BL_CON style has no continuation block to look for.
+    # Falling back to an empty style name would match the empty custom-style divs
+    # that a template with missing keys emits, and read them as continuations.
+    my $continuationStart = $styles{'BL_CON'}
+        ? '::: {custom-style="' . $styles{'BL_CON'} . '"}'
+        : undef;
+
+    my $previous = sub {
+        my $i = shift;
+        $i-- while $i >= 0 && $lines[$i] eq '';
+        return $i;
+    };
+    my $following = sub {
+        my $i = shift;
+        $i++ while $i <= $#lines && $lines[$i] eq '';
+        return $i;
+    };
+
+    # The closest line above belongs to the same list: an item, or the end of a
+    # continuation block.
+    my $continuesAbove = sub {
+        my $j = $previous->(shift() - 1);
+        return 0 if $j < 0;
+        return 1 if $lines[$j] =~ $item;
+        return 0 unless $lines[$j] eq ':::';
+        my $depth = 1;
+        for (my $k = $j - 1; $k >= 0; $k--) {
+            if ($lines[$k] eq ':::') { $depth++; }
+            elsif ($lines[$k] =~ /^::: \{/) { return defined $continuationStart && $lines[$k] eq $continuationStart if --$depth == 0; }
+        }
+        return 0;
+    };
+
+    # The closest line below belongs to the same list: an item, or the start of a
+    # continuation block.
+    my $continuesBelow = sub {
+        my $j = $following->(shift() + 1);
+        return 0 if $j > $#lines;
+        return $lines[$j] =~ $item || (defined $continuationStart && $lines[$j] eq $continuationStart);
+    };
+
+    my @result;
+    for my $i (0 .. $#lines) {
+        unless ($lines[$i] =~ $item) {
+            push @result, $lines[$i];
+            next;
+        }
+        my ($number, $content) = ($1, $2);
+        my $style = ($number == 1 && !$continuesAbove->($i)) ? $first
+                  : $continuesBelow->($i)                    ? $mid
+                  :                                              $last;
+        # Templates with a number style print the number as the manuscript wrote it.
+        $content = "[$number.]{custom-style=\"$styles{'NL_NUM'}\"} $content" if $styles{'NL_NUM'};
+        push @result, qq{::: {custom-style="$styles{$style}"}}, $content, ':::';
+    }
+    return join "\n", @result;
 }
 
 sub translateTables {
