@@ -22,7 +22,10 @@ Currently the following templates (that you will get from your publisher) are su
 `dpunkt_V05` targets dpunkt's accessibility (BFSG) template `dpunkt_V05.dotm`. It renames
 nearly every custom style of `dpunkt_2019`, so the two are not interchangeable. It also uses
 one listing style per programming language (`Listing Java`, `Listing Python`, ...), picked from
-the language on the code fence; see `listing_language_styles` in `bin/markua2dpunkt_V05`.
+the language on the code fence; see `listing_language_styles` in `bin/markua2dpunkt_V05`. Pass
+`--no-language-listings true` (in the GitHub Action: `no-language-listings: true`) to leave
+every listing in `Listing Standard` instead, for instance when the publisher asks for one
+listing style throughout.
 
 ## Usage
 
@@ -124,6 +127,36 @@ Four asterisks and a colon are used to markup dialog between several speakers. Q
 
 ****Butch:**** "Zed's dead, baby. Zed's dead..."
 ```
+
+### Index entries
+
+An index entry stands behind the term it points to and does not show up in the
+text:
+
+```markdown
+Markua is a markup language{i: "Markua"} for writing books.
+```
+
+Where a template asks for them through the `index_entries` setting, entries
+become Word XE fields, and Word builds the index from those. Templates without
+the setting drop index entries, as they did before.
+
+The [Markua index syntax](https://help.leanpub.com/en/articles/6961502-how-to-create-an-index-in-a-leanpub-book)
+is supported as it is written there. The quotation marks are optional, `!`
+separates the levels of an entry (`\!` is a literal one), and an entry may end
+in a `see` or `seealso` reference:
+
+```markdown
+Call me Ishmael{i: Ishmael}.
+The cataract{i: "Niagara!cataract"} was loud.
+Strange!{i: "Strange\!"}
+Two handfuls of silver{i: "Tennessee|see{i:'silver'}"}.
+```
+
+Word separates the levels of an index entry with a colon rather than a `!`, so
+that is what the field ends up carrying, and a colon in the term itself is
+escaped. A `see` or `seealso` reference becomes Word's `\t` switch. Inline
+markup inside a term is dropped, because Word's field takes plain text.
 
 ## Contact
 

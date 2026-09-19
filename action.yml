@@ -13,6 +13,9 @@ inputs:
   single-file:
     description: 'If the input is a single file (as opposed to a file of files like `book.txt`)'
     default: false
+  no-language-listings:
+    description: 'Put every listing in the standard listing style instead of the one for its language (dpunkt_V05 only)'
+    default: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -24,3 +27,5 @@ runs:
     - ${{ inputs.in }}
     - --single-file
     - ${{ inputs.single-file }}
+    - --no-language-listings
+    - ${{ inputs.no-language-listings }}
