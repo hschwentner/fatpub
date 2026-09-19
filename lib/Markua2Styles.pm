@@ -84,14 +84,12 @@ sub Markua2Styles {
     return $text;
 }
 
-# Index entries are lifted out of the text before the translation passes run and
-# put back as the very last step. They have to be gone in between: a pass like
-# translateEmphasizement would otherwise rewrite the term (turning `*x*` into
-# `[x]{custom-style="..."}`), whose brace then ends the `{i:...}` match early and
-# leaves the rest of the entry standing in the text. Keeping them out also means
-# a paragraph that opens with an entry still looks like a paragraph to
-# translateBodyText.
 our @indexEntries;
+
+# One index entry. The nested {i:'...'} is what a |see / |seealso reference
+# carries, so a plain non-greedy match would stop at the inner brace and leave
+# the tail of the entry standing in the text.
+our $INDEX_ENTRY = qr{ \{i: (?: [^{}] | \{i: [^{}]* \} )* \} }x;
 
 sub extractIndexEntries {
     my $text = shift;
@@ -100,7 +98,7 @@ sub extractIndexEntries {
     my $mode = $settings{'index_entries'} // 'drop';
 
     if ($mode ne 'word_fields') {
-        $text =~ s/\{i:.*?\}//gm;    # Ignore index entries
+        $text =~ s/$INDEX_ENTRY//g;    # Ignore index entries
         return $text;
     }
 
@@ -108,7 +106,7 @@ sub extractIndexEntries {
     # field in its place. U+E000 is private use, so no manuscript can contain it,
     # and $PARAGRAPH_START accepts it so a paragraph opening with an entry is
     # still recognised as one.
-    $text =~ s/\{i:\s*(.*?)\s*\}/push @indexEntries, $1; "\x{E000}" . $#indexEntries . "\x{E001}"/gme;
+    $text =~ s/($INDEX_ENTRY)/push @indexEntries, $1; "\x{E000}" . $#indexEntries . "\x{E001}"/ge;
 
     return $text;
 }
@@ -125,23 +123,75 @@ sub expandIndexEntries {
     return $text;
 }
 
-sub indexField {
+# Markua writes an index entry as {i: term}, where the term may be quoted, may
+# name several levels separated by "!" (an escaped "\!" is a literal one), and
+# may end in a |see or |seealso reference:
+#
+#     {i: Ishmael}
+#     {i: "Niagara!cataract"}
+#     {i: "Strange\!"}
+#     {i: "Tennessee|see{i:'silver'}"}
+#
+# See <https://help.leanpub.com/en/articles/6961502-how-to-create-an-index-in-a-leanpub-book>.
+sub parseIndexEntry {
+    my $entry = shift;
+
+    $entry =~ s/^\{i:\s*//;
+    $entry =~ s/\}$//;
+    $entry =~ s/^\s+|\s+$//g;
+    $entry =~ s/^"(.*)"$/$1/s or $entry =~ s/^'(.*)'$/$1/s;    # the quotes are optional
+
+    my ($reference, $target) = ('', '');
+    if ($entry =~ s/(?<!\\) \| (see(?:also)?) \s* \{i:\s*(.*?)\s*\} \s*$//x) {
+        ($reference, $target) = ($1, $2);
+        $target =~ s/^"(.*)"$/$1/s or $target =~ s/^'(.*)'$/$1/s;
+    }
+
+    return ($entry, $reference, $target);
+}
+
+# Markua separates the levels of an entry with "!", Word with ":".
+sub indexLevels {
     my $term = shift;
 
-    $term =~ s/^"(.*)"$/$1/;    # the term may or may not be quoted
+    my @levels = split /(?<!\\)!/, $term, -1;
+    for my $level (@levels) {
+        $level =~ s/\\!/!/g;                  # resolve Markua's escape
 
-    # Word's field syntax first: a backslash escapes the character behind it,
-    # and a bare quotation mark would end the argument.
-    $term =~ s/\\/\\\\/g;
-    $term =~ s/"/\\"/g;
+        # Word's field takes plain text, so inline markup cannot come along.
+        $level =~ s/\*\*(.+?)\*\*/$1/g;
+        $level =~ s/\*(.+?)\*/$1/g;
+        $level =~ s/_(.+?)_/$1/g;
 
-    # then XML, because the term ends up in a text node
-    $term =~ s/&/&amp;/g;
-    $term =~ s/</&lt;/g;
-    $term =~ s/>/&gt;/g;
+        # Word's field syntax: a backslash escapes what follows, a bare quotation
+        # mark would end the argument, and a colon would start another level.
+        $level =~ s/\\/\\\\/g;
+        $level =~ s/"/\\"/g;
+        $level =~ s/:/\\:/g;
+    }
+
+    return join ':', @levels;
+}
+
+sub indexField {
+    my $entry = shift;
+
+    my ($term, $reference, $target) = parseIndexEntry($entry);
+
+    my $field = 'XE "' . indexLevels($term) . '"';
+    if ($reference) {
+        # Word prints the \t text where the page number would go.
+        my $label = $reference eq 'see' ? 'See' : 'See also';
+        $field .= qq{ \\t "$label } . indexLevels($target) . '"';
+    }
+
+    # XML last, because the field ends up in a text node.
+    $field =~ s/&/&amp;/g;
+    $field =~ s/</&lt;/g;
+    $field =~ s/>/&gt;/g;
 
     return '`<w:r><w:fldChar w:fldCharType="begin"/></w:r>'
-        . '<w:r><w:instrText xml:space="preserve"> XE "' . $term . '" </w:instrText></w:r>'
+        . '<w:r><w:instrText xml:space="preserve"> ' . $field . ' </w:instrText></w:r>'
         . '<w:r><w:fldChar w:fldCharType="end"/></w:r>`{=openxml}';
 }
 

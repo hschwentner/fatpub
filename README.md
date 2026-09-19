@@ -138,9 +138,25 @@ Markua is a markup language{i: "Markua"} for writing books.
 ```
 
 Where a template asks for them through the `index_entries` setting, entries
-become Word XE fields, and Word builds the index from those. A colon separates
-the levels: `{i: "Markua:Index entries"}`. Templates without the setting drop
-index entries, as they did before.
+become Word XE fields, and Word builds the index from those. Templates without
+the setting drop index entries, as they did before.
+
+The [Markua index syntax](https://help.leanpub.com/en/articles/6961502-how-to-create-an-index-in-a-leanpub-book)
+is supported as it is written there. The quotation marks are optional, `!`
+separates the levels of an entry (`\!` is a literal one), and an entry may end
+in a `see` or `seealso` reference:
+
+```markdown
+Call me Ishmael{i: Ishmael}.
+The cataract{i: "Niagara!cataract"} was loud.
+Strange!{i: "Strange\!"}
+Two handfuls of silver{i: "Tennessee|see{i:'silver'}"}.
+```
+
+Word separates the levels of an index entry with a colon rather than a `!`, so
+that is what the field ends up carrying, and a colon in the term itself is
+escaped. A `see` or `seealso` reference becomes Word's `\t` switch. Inline
+markup inside a term is dropped, because Word's field takes plain text.
 
 ## Contact
 
