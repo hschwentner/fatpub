@@ -1,0 +1,25 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prove:
+    runs-on: ubuntu-26.04
+    # Same base image as the project's own Dockerfile, so the tests run on the
+    # interpreter that actually ships.
+    container: perl:5.42
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Show Perl version
+        run: perl --version
+
+      - name: Run tests
+        run: prove -l --failures t/
