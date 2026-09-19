@@ -67,13 +67,9 @@ is( cleanup("before\n{id: some-anchor}\nafter\n"),
     "before\n\nafter\n",
     'strips the {id} directive' );
 
-is( cleanup("Some {i:index entry}text"),
-    "Some text",
-    'removes index entries' );
-
-is( cleanup("a {i:first} b {i:second} c"),
-    "a  b  c",
-    'removes every index entry on a line, not just the first' );
+# Index entries used to be cleanup's last substitution and were tested here.
+# They are covered by t/13-index-entries.t instead, through the whole pipeline:
+# which sub strips them is an implementation detail that has already moved once.
 
 # --- known defect -------------------------------------------------------
 #
