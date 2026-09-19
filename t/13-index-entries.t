@@ -72,4 +72,46 @@ my $leading = convert("First.\n\nSecond.\n\n{i: \"term\"}According to the author
 like( $leading, qr/\Q::: {custom-style="CHAP_BM"}\E\nAccording to the authors/,
     'a paragraph opening with an entry still gets its body style' );
 
+
+# --- the Markua index syntax -------------------------------------------
+#
+# https://help.leanpub.com/en/articles/6961502-how-to-create-an-index-in-a-leanpub-book
+# and Leanpub's own sample book at leanpub/sample-book-with-index-entries.
+# Entries are dropped here, so these check that every documented shape is
+# recognised as one entry and leaves nothing of itself behind. What the Word
+# field looks like is #1's business, and is tested there once it lands.
+
+for my $case (
+    [ 'Call me Ishmael{i: Ishmael}.',                 'Call me Ishmael.',      'a bare, unquoted term' ],
+    [ 'A voyage{i: "voyage"}.',                       'A voyage.',             'a quoted term' ],
+    [ 'The cataract{i: "Niagara!cataract"}.',         'The cataract.',         'levels separated by !' ],
+    [ 'The sand{i: "Niagara!*sand*"}.',               'The sand.',             'inline markup in a term' ],
+    [ 'Strange!{i: "Strange\\!"}.',                     'Strange!.',             'an escaped literal !' ],
+    [ 'A Sabbath{i: "Sabbath, the"}.',                'A Sabbath.',            'a comma is part of the term' ],
+) {
+    my ($markua, $expected, $what) = @$case;
+    my $out = convert("First.\n\n$markua\n\nLast.\n");
+    unlike( $out, qr/\{i:/, "$what: nothing of the entry survives" );
+    like(   $out, qr/\Q$expected\E/, "$what: the sentence is left intact" );
+}
+
+# A see or seealso reference nests another {i:...} inside the entry, and the
+# pattern that drops entries is non-greedy, so it stops at the inner brace and
+# leaves the tail of the entry in the text. #1 replaces that pattern with one
+# that knows about the nesting; until it lands, these stay TODO.
+
+TODO: {
+    local $TODO = 'the drop pattern stops at the inner brace of a |see reference, '
+                . 'leaving the rest of the entry in the text';
+
+    for my $case (
+        [ q{Silver{i: "Tennessee|see{i:'silver'}"}.},   'Silver.', 'a see reference, which nests {i:...}' ],
+        [ q{A coat{i: "Tennessee|seealso{i:'coat'}"}.}, 'A coat.', 'a seealso reference' ],
+    ) {
+        my ($markua, $expected, $what) = @$case;
+        like( convert("First.\n\n$markua\n\nLast.\n"), qr/\Q$expected\E/,
+            "$what: the sentence is left intact" );
+    }
+}
+
 done_testing();
