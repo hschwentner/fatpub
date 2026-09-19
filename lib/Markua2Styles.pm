@@ -39,6 +39,9 @@ sub Markua2Styles {
 
     $text = cleanup($text);
 
+    # Index entries are lifted out here and put back as the last step.
+    $text = extractIndexEntries($text);
+
     $text = cleanupGermanAbbreviations($text);
 
     $text = translateSpecialAsides($text);
@@ -76,14 +79,24 @@ sub Markua2Styles {
 
     # Last step: the raw OOXML of an index field contains backticks, which the
     # code and emphasis rules would otherwise take for inline code.
-    $text = translateIndexEntries($text);
+    $text = expandIndexEntries($text);
 
     return $text;
 }
 
-sub translateIndexEntries {
+# Index entries are lifted out of the text before the translation passes run and
+# put back as the very last step. They have to be gone in between: a pass like
+# translateEmphasizement would otherwise rewrite the term (turning `*x*` into
+# `[x]{custom-style="..."}`), whose brace then ends the `{i:...}` match early and
+# leaves the rest of the entry standing in the text. Keeping them out also means
+# a paragraph that opens with an entry still looks like a paragraph to
+# translateBodyText.
+our @indexEntries;
+
+sub extractIndexEntries {
     my $text = shift;
 
+    @indexEntries = ();
     my $mode = $settings{'index_entries'} // 'drop';
 
     if ($mode ne 'word_fields') {
@@ -91,9 +104,23 @@ sub translateIndexEntries {
         return $text;
     }
 
+    # The placeholder stands in for the entry until expandIndexEntries() puts the
+    # field in its place. U+E000 is private use, so no manuscript can contain it,
+    # and $PARAGRAPH_START accepts it so a paragraph opening with an entry is
+    # still recognised as one.
+    $text =~ s/\{i:\s*(.*?)\s*\}/push @indexEntries, $1; "\x{E000}" . $#indexEntries . "\x{E001}"/gme;
+
+    return $text;
+}
+
+sub expandIndexEntries {
+    my $text = shift;
+
+    return $text unless @indexEntries;
+
     # Word builds its index from XE fields, so a Markua index entry becomes one.
     # Pandoc passes the raw OOXML through untouched.
-    $text =~ s/\{i:\s*(.*?)\s*\}/indexField($1)/gme;
+    $text =~ s/\x{E000}(\d+)\x{E001}/indexField($indexEntries[$1])/ge;
 
     return $text;
 }
@@ -207,7 +234,7 @@ sub translateBackmatter {
     return $text;
 }
 
-our $PARAGRAPH_START = '[\[\*]*[A-ZÄÖÜa-z“„»@]';
+our $PARAGRAPH_START = '[\[\*]*[A-ZÄÖÜa-z“„»@\x{E000}]';
 
 # A bare, unnumbered native table caption (`Table: Caption {#tbl:...}`) must stay
 # adjacent to its table for pandoc-crossref to recognize it; the generic
@@ -460,7 +487,12 @@ sub translateNumberedLists {
 
     # A continuation paragraph has already been wrapped into a block of its own
     # above; it still belongs to the item it follows.
-    my $continuationStart = '::: {custom-style="' . ($styles{'BL_CON'} // '') . '"}';
+    # A template without a BL_CON style has no continuation block to look for.
+    # Falling back to an empty style name would match the empty custom-style divs
+    # that a template with missing keys emits, and read them as continuations.
+    my $continuationStart = $styles{'BL_CON'}
+        ? '::: {custom-style="' . $styles{'BL_CON'} . '"}'
+        : undef;
 
     my $previous = sub {
         my $i = shift;
@@ -483,7 +515,7 @@ sub translateNumberedLists {
         my $depth = 1;
         for (my $k = $j - 1; $k >= 0; $k--) {
             if ($lines[$k] eq ':::') { $depth++; }
-            elsif ($lines[$k] =~ /^::: \{/) { return $lines[$k] eq $continuationStart if --$depth == 0; }
+            elsif ($lines[$k] =~ /^::: \{/) { return defined $continuationStart && $lines[$k] eq $continuationStart if --$depth == 0; }
         }
         return 0;
     };
@@ -493,7 +525,7 @@ sub translateNumberedLists {
     my $continuesBelow = sub {
         my $j = $following->(shift() + 1);
         return 0 if $j > $#lines;
-        return $lines[$j] =~ $item || $lines[$j] eq $continuationStart;
+        return $lines[$j] =~ $item || (defined $continuationStart && $lines[$j] eq $continuationStart);
     };
 
     my @result;
