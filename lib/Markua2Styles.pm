@@ -159,6 +159,10 @@ sub indexLevels {
         $level =~ s/\\!/!/g;                  # resolve Markua's escape
 
         # Word's field takes plain text, so inline markup cannot come along.
+        # A code span opens and closes with a backtick string of equal length,
+        # so a term may carry a backtick of its own between doubled ones. The
+        # space that separates such a backtick from the fence is not content.
+        $level =~ s{(`+)(.+?)\1}{ my $code = $2; $code =~ s/^ (.*) $/$1/s unless $code =~ /^ +$/; $code }ge;
         $level =~ s/\*\*(.+?)\*\*/$1/g;
         $level =~ s/\*(.+?)\*/$1/g;
         $level =~ s/_(.+?)_/$1/g;
